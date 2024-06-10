@@ -13,7 +13,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export function Collection4({route}) {
   const {donorState, donorDispach} = useContext(DonorContext)
-  const basedImage = require("../../../assets/images/profile.webp");
+  const basedImage = require("../../../assets/images/profile2.webp");
   const navigation = useNavigation();
   const database = getDatabase(firebaseApp);
 
