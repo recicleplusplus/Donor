@@ -51,7 +51,7 @@
     "typescript": "^5.1.3"
   },
   "private": true,
-  "repository": "https://github.com/recicleUSP/Donor.git",
+  "repository": "https://github.com/recicleplusplus/Donor.git",
   "author": "leonardo8787 <leocampos8787@gmail.com>",
   "license": "MIT"
 }
