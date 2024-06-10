@@ -24,14 +24,6 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "ios": {
-      "supportsTablet": true,
-      "userInterfaceStyle": "automatic",
-      "infoPlist": {
-        "UIUserInterfaceStyle": "Light"
-      },
-      "bundleIdentifier": "com.recicle++.donor"
-    },
     "android": {
       "versionCode": 1,
       "package": "com.recicleplusplus.recicle",
