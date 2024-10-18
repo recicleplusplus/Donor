@@ -18,10 +18,10 @@ import { SizedBox } from 'sizedbox';
 import { DonorContext } from "../../contexts/donor/context";
 import { ImageCircleIcon } from "../../components/images";
 import { useNavigation } from '@react-navigation/native';
-import { getFirestore, firebaseApp } from "firebase/firestore";
+import { getFirestore, firebaseApp, updateDoc, doc } from "firebase/firestore";
 import { CardHome } from "../address/components/card";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { getDatabase, ref, get } from "firebase/database";
+import { getDatabase, ref, get, set } from "firebase/database";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export function Home({}) {
@@ -30,9 +30,8 @@ export function Home({}) {
   const {donorState, donorDispach} = useContext(DonorContext)
   const basedImage                       = require("../../../assets/images/profile2.webp");
   const [image, setImage]                = useState(basedImage);
-  const [tarefas, setTarefas]            = useState([]);
+  const [tarefas, setTarefas]            = useState({});
   const quantidadeTarefas = tarefas.length;
-  const tipos = tarefas.map((tarefa) => tarefa.tipo);
 
   const tokenizeString=(string) => {
     const tokens = String(string).replace(/([a-z])([A-Z])/g, '$1,$2').split(',');
@@ -73,7 +72,7 @@ export function Home({}) {
               weekDays: donorInfo.weekDays,
               weight: donorInfo.weight
             };
-            donorArray.push(donorData);
+            donorArray.push(donorData); 
           }
         }
         setdonorData(donorArray);
@@ -82,21 +81,50 @@ export function Home({}) {
     .catch(error => {
       console.error('Erro ao ler os dados:', error);
     });
-  }, [yourdonorId]);
+  }, [yourdonorId]); 
 
-  // const quantidadetypesA = collectorData.filter((tarefa) => tarefa.types.includes('Plástico')).length;
-  // const quantidadetypesB = collectorData.filter((tarefa) => tarefa.types.includes('Metal')).length;
-  // const quantidadetypesC = collectorData.filter((tarefa) => tarefa.types.includes('Eletrônico')).length;
-  // const quantidadetypesD = collectorData.filter((tarefa) => tarefa.types.includes('Papel')).length;
-  // const quantidadetypesE = collectorData.filter((tarefa) => tarefa.types.includes('Óleo')).length;
-  // const quantidadetypesF = collectorData.filter((tarefa) => tarefa.types.includes('Vidro')).length;
+  useEffect(() => {
+    if (donorData.length > 0) {
+      getDonorStatistics(donorData).then(statistic => {
+        setDonorStatistic(donorState.id, statistic);
+        setTarefas(statistic);
+      });
+    }
+  }, [donorData]);
 
-  const quantidadetypesA = 50; 
-  const quantidadetypesB = 30;
-  const quantidadetypesC = 70;
-  const quantidadetypesD = 40;
-  const quantidadetypesE = 20;
-  const quantidadetypesF = 60;
+  async function getDonorStatistics() {
+    const typesWeight = {};
+    donorData.forEach(item => {
+      const typesArray = item.types.split(',').map(type => type.trim());
+      const weight = parseInt(item.weight.match(/\d+/)[0], 10); // Extrai apenas o número da string "5 KG" e converte para inteiro
+  
+      typesArray.forEach(type => {
+        if (typesWeight[type]) {
+          typesWeight[type] += weight;
+        } else { 
+          typesWeight[type] = weight;
+        }
+      });
+    });
+    const statistic = {
+      collectionsCompleted: donorData.length,
+      eletronicKg: typesWeight["eletronico"] || 0,
+      glassKg: typesWeight["vidro"] || 0,
+      metalKg: typesWeight["metal"] || 0,
+      oilKg: typesWeight["oil"] || 0,
+      paperKg: typesWeight["papel"] || 0,
+      plasticKg: typesWeight["plastico"] || 0
+    }
+    setTarefas(statistic);
+    return statistic;
+  }
+
+  const quantidadetypesA = tarefas.plasticKg;
+  const quantidadetypesB = tarefas.metalKg;
+  const quantidadetypesC = tarefas.eletronicKg;
+  const quantidadetypesD = tarefas.paperKg;
+  const quantidadetypesE = tarefas.oilKg;
+  const quantidadetypesF = tarefas.glassKg;
 
   // Encontrando o maior valor para normalização
   const max = Math.max(
@@ -131,6 +159,16 @@ export function Home({}) {
       : basedImage);
   },[donorState.photoUrl]);
   
+  async function setDonorStatistic(userId, statistic) {
+    try {
+      const db = getFirestore(firebaseApp);
+      const donorDoc = doc(db, "donor", userId);
+      await updateDoc(donorDoc, { statistic });
+    } catch (error) {
+      console.error("Erro ao acessar o documento statistic:", error);
+    }
+  }
+
   async function changeProfileImage(){
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -175,25 +213,29 @@ export function Home({}) {
        <View style={styles.main}>
             <Text style={{ color: Colors[Theme][2], textAlign: 'right', padding: 20, fontWeight: 'bold' }}>Avaliação</Text>
         </View>
-       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    <View>
-    <TouchableOpacity style={styles.card}>
-      <View style={{ alignItems: 'center' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: 10 }}>
-          <View style={styles.barContainer}>
-            {barData.map((bar, index) => (
-              <View key={index} style={styles.bar}>
-                <View style={[styles.barFill, { height: bar.height, backgroundColor: bar.color }]}>
-                  <Text style={styles.barText}>{bar.value}</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <TouchableOpacity style={styles.card}>
+            <View style={{ alignItems: 'center', minHeight: 125, justifyContent: 'center' }}>
+              {Object.keys(tarefas).length === 0 ? (
+                <View style={{alignItems: 'center', justifyContent: 'center'}}>
+                  <Text style={{ color: Colors[Theme][2], textAlign: 'center', padding: 20, fontWeight: 'bold' }}>Carregando...</Text>
                 </View>
-                <Text style={styles.legend}>{bar.label}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-    </View>
+              ) : (
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: 10 }}>
+                  <View style={styles.barContainer}>
+                    {barData.map((bar, index) => (
+                      <View key={index} style={styles.bar}>
+                        <View style={[styles.barFill, { height: bar.height, backgroundColor: bar.color }]}>
+                          <Text style={styles.barText}>{bar.value}</Text>
+                        </View>
+                        <Text style={styles.legend}>{bar.label}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
         </View>
        <SizedBox vertical={2} />
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
