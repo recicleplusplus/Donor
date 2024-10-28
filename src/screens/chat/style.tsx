@@ -74,4 +74,20 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginTop: 4, 
   },
+
+  collectorName: {
+    fontSize: 20,
+    marginLeft: 12
+  },
+
+  collectorImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 50
+  },
+
+  containerCollectorProfile: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
 });

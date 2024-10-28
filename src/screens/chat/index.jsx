@@ -83,14 +83,16 @@ export function ChatScreen({ route }) {
   return (
     <View style={styles.container}>
       <SizedBox vertical={20} />
-      <Image source={{ uri: userPhotoUrl }}/>
-      <Text>{userName}</Text>
+      <View style={styles.containerCollectorProfile}>
+        <Image source={{ uri: userPhotoUrl }}
+          style={styles.collectorImage} />
+        <Text style={styles.collectorName}>{userName}</Text>
+      </View>
       <FlatList
         data={messages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.messagesContainer}
-        inverted 
       />
       <View style={styles.inputContainer}>
         <TextInput
