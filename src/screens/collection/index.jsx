@@ -61,23 +61,32 @@ export function Collection({ route }) {
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'flex-start' }}>
               <Text style={{ color: Colors[Theme][2], textAlign: 'left', padding: 20, fontWeight: 'bold', fontSize: 20 }}>Cadastrar Coleta 1</Text>
         </View>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'flex-start' }}>
-              <Text style={{ color: Colors[Theme][2], textAlign: 'left', padding: 15, fontSize: 15 }}>Endereço</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'flex-start', padding: 15, paddingBottom: 0 }}>
+          <Text style={{ color: Colors[Theme][2], textAlign: 'left', fontSize: 15 }}>Endereço</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+              <Text style={{ color: Colors[Theme][4], fontSize: 15, fontWeight: 500 }}>Cadastrar Endereço +</Text>
+            </TouchableOpacity>
         </View>
         <View style={styles.containerEdit}>
-         {donorState.address.map((address) => (
-           <View key={address.title} style={styles.containerEdit}>
-             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-               <Checkbox
-                 status={checkString.includes(address.title) ? 'checked' : 'unchecked'}
-                 onPress={() => checkBoxString(address.title)}
-                 color={Colors[Theme][1]}
-                 uncheckColor={Colors[Theme][2]}
-               />
-               <AddressCard2 address={address} editFn={() => AddressCard2(address)} key={address.title} />
-             </View>
-           </View>
-      ))}
+          {donorState.address.length > 0 ? (
+            donorState.address.map((address) => (
+              <View key={address.title} style={styles.containerEdit}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Checkbox
+                    value={checkString.includes(address.title)}
+                    status={checkString.includes(address.title) ? 'checked' : 'unchecked'}
+                    onPress={() => checkBoxString(address.title)}
+                    color={Colors[Theme][2]}
+                  />
+                  <AddressCard2 address={address} editFn={() => AddressCard2(address)} key={address.title} />
+                </View>
+              </View>
+            ))
+            ) : (
+            <View>
+              <Text style={{ color: Colors[Theme][4], textAlign: 'left', paddingBottom: 15, fontSize: 15 }}>Nenhum endereço cadastrado</Text>
+            </View>
+          )}
        </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'flex-start' }}>
               <Text style={{ color: Colors[Theme][2], textAlign: 'left', padding: 15, fontSize: 15 }}>Tipo de material</Text>
