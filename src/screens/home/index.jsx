@@ -31,7 +31,7 @@ export function Home({}) {
   const basedImage                       = require("../../../assets/images/profile2.webp");
   const [image, setImage]                = useState(basedImage);
   const [tarefas, setTarefas]            = useState({});
-  const quantidadeTarefas = tarefas.length;
+  const quantidadeTarefas = tarefas ? Object.keys(tarefas).length : 0;
 
   const tokenizeString=(string) => {
     const tokens = String(string).replace(/([a-z])([A-Z])/g, '$1,$2').split(',');
@@ -218,7 +218,7 @@ export function Home({}) {
             <View style={{ alignItems: 'center', minHeight: 125, justifyContent: 'center' }}>
               {Object.keys(tarefas).length === 0 ? (
                 <View style={{alignItems: 'center', justifyContent: 'center'}}>
-                  <Text style={{ color: Colors[Theme][2], textAlign: 'center', padding: 20, fontWeight: 'bold' }}>Carregando...</Text>
+                  <Text style={{ color: Colors[Theme][2], textAlign: 'center', padding: 20, fontWeight: 'bold' }}>Não há estatísticas...</Text>
                 </View>
               ) : (
                 <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: 10 }}>
