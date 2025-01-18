@@ -32,6 +32,14 @@ function TabsRoutes() {
       }}
     >
       <Tab.Screen 
+        name="Home" 
+        component={StackCollection} 
+        options={{
+          title: "Início",
+          tabBarIcon: ({ color }) => ( <SimpleIcon name="recycle" color={color}  size={Size28} />),
+        }}
+      />     
+      <Tab.Screen 
         name="Profile" 
         component={Profile} 
         options={{
@@ -55,14 +63,6 @@ function TabsRoutes() {
           tabBarIcon: ({ color }) => ( <SimpleIcon name="bell" color={color} size={Size28} />),
         }}
       />
-      <Tab.Screen 
-        name="Home" 
-        component={StackCollection} 
-        options={{
-          title: "Início",
-          tabBarIcon: ({ color }) => ( <SimpleIcon name="recycle" color={color}  size={Size28} />),
-        }}
-      />     
     </Tab.Navigator>
   );
 }

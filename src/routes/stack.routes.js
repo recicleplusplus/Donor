@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { Home } from '../screens/home';
+import { Home as HomeStack } from '../screens/home';
 import { Collection } from '../screens/collection';
 import { Collection2 } from '../screens/collection/index2';
 import { Collection3 } from '../screens/collection/index3';
@@ -11,10 +11,10 @@ const Stack = createNativeStackNavigator();
 
 function StackCollection() {
   return (
-    <Stack.Navigator initialRouteName='Home'>
+    <Stack.Navigator initialRouteName='HomeStack'>
         <Stack.Screen 
-          name="Home" 
-          component={Home} 
+          name="HomeStack" 
+          component={HomeStack} 
           options={{ headerShown: false }}
         />
         <Stack.Screen 
