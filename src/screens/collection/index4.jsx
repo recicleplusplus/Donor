@@ -8,14 +8,17 @@ import { SizedBox } from 'sizedbox';
 import { firebaseApp } from "firebase/firestore";
 import { getDatabase, push, ref } from "firebase/database";
 import { DonorContext } from "../../contexts/donor/context";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Snackbar } from "react-native-paper";
 
 export function Collection4({route}) {
   const {donorState, donorDispach} = useContext(DonorContext)
   const basedImage = require("../../../assets/images/profile2.webp");
   const navigation = useNavigation();
   const database = getDatabase(firebaseApp);
+  const [visible, setVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const user = {
     id: donorState.id,
@@ -45,6 +48,12 @@ export function Collection4({route}) {
     state: addressArray[9],
   };
 
+  const showSnackbar = () => {
+    setSnackbarMessage("Documento adicionado com sucesso!");
+    setVisible(true);
+    setTimeout(() => setVisible(false), 2000); // Fecha após 2 segundos
+  };
+
   async function addNewDocument(tipo, caixas, dia, hora, endereco, observacao, peso, sacolas, user, coletor) {
     try {
       const userData = {
@@ -68,7 +77,10 @@ export function Collection4({route}) {
       });
   
       console.log('Documento adicionado com ID:', newDocRef.key);
-      navigation.navigate('Home');
+      showSnackbar();
+      setTimeout(() => {
+        navigation.navigate('HomeStack');
+      }, 2000);
     } catch (error) {
       console.error('Erro ao adicionar documento:', error);
     }
@@ -93,6 +105,16 @@ export function Collection4({route}) {
         <SizedBox vertical={30} />
       </View>
     </ScrollView>
+    <Snackbar
+      visible={visible}
+      onDismiss={() => setVisible(false)}
+      action={{
+        label: 'Fechar',
+        onPress: () => setVisible(false),
+      }}
+    >
+      {snackbarMessage}
+    </Snackbar>
     </GestureHandlerRootView>
 
   );
