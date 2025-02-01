@@ -59,7 +59,7 @@ export function Collection4({route}) {
       const userData = {
         id: user?.uid || "none",
         name: user?.name || "none",
-        photoUrl: user?.photoUrl || require("../../../assets/images/profile.jpg"),
+        photoUrl: user?.photoUrl || "none",
       };
   
       const newDocRef = await push(ref(database, 'recyclable'), {
