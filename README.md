@@ -121,6 +121,10 @@ A organização de pastas no projeto segue o padrão Model-View-Controller (MVC)
 Essa organização de pastas promove uma separação clara de responsabilidades, facilitando a manutenção e a reutilização de componentes em diferentes partes do aplicativo. Além disso, o uso do padrão MVC auxilia no desenvolvimento ágil e na manutenção do código ao longo do tempo.
 É importante lembrar que essa estrutura pode ser adaptada de acordo com as necessidades do projeto, mas a ideia principal é proporcionar uma organização clara e coesa para facilitar o desenvolvimento e a colaboração entre os membros da equipe.
 
+#### Para baixar o APK
+
+clique no Doador.apk, disponível na raiz do projeto, o download vai começar automaticamente.
+
 # Autores
 
  - Gabriel Rosa
