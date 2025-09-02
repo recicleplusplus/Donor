@@ -7,12 +7,10 @@ import { SizedBox } from "sizedbox";
 import { InputIcon, InputIconMask } from "../../components/inputs";
 import * as Mask from "../../utils/marksFormat";
 import { cepValidation } from "../../utils/validation";
-import { DonorContext } from "../../contexts/donor/context";
 import { useEffect, useState, useContext } from "react";
 import { Loading } from "../../components/loading";
 import { Error } from "../../components/error";
 import { UPDATEADDRESS, UPDATE } from "../../contexts/donor/types";
-import { ADDRESS_GEO_KEY } from "../../constants/addressGeo";
 
 
 export const RegisterAddress = ({data, dispach, closeFunc, idx = -1}) => {
@@ -33,7 +31,7 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1}) => {
 
     const [head, setHead]                   = useState("Cadastro de Endereço")
     const [error, setError]                 = useState(false);
-    const [loading, setloading]         = useState(false);
+    const [loading, setloading]             = useState(false);
 
     const [titleErr, setTitleErr]           = useState("");
     const [cepErr, setCepErr]               = useState("");
@@ -117,37 +115,39 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1}) => {
                     if(!data.erro){
                         setNeighborhood(data.bairro);
                         setCity(data.localidade);
-                        setStreet(data.logradouro. substring(3));
+                        setStreet(data.logradouro.substring(3));
                         setState(data.uf);
                     }
                 });
         });
     }
 
-    function apiGeoLocation(){
+    async function apiGeoLocation(){
         const nCep = cep.replace(/[^0-9]/gi, "");
         const address = `${street},${num},${neighborhood},${city},${state},${nCep}`;
-        
-        return `https://dev.virtualearth.net/REST/v1/Locations?q=${address}&output=json&key=${ADDRESS_GEO_KEY}`;
-        //return `https://platform.bing.com/geo/spatial/v1/public/Geodata?SpatialFilter=GetBoundary('${address}',1,'CountryRegion',1,1,'pt','br')&$format=json&key=${ADDRESS_GEO_KEY}`;
+
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+        const response = await fetch(url, {
+        headers: {
+            'User-Agent': 'seu-app/1.0'
+        }
+        });
+        return response;
     }
+    
     async function getGeoLocation(){
         try{
-            let responseObj = await fetch(apiGeoLocation());
+            let responseObj = await apiGeoLocation();
             let data = await responseObj.json();
             if(!data.erro){
-                // console.log("Geolocation Data: ",data);
-                // console.log("Geolocation Results: ",data["resourceSets"][0]["resources"][0]["point"]["coordinates"]);
-                const geoLoc = data["resourceSets"][0]["resources"][0]["point"]["coordinates"];
-                latitud =`${geoLoc[0]}`;
-                longitud = `${geoLoc[1]}`;
+                latitud =`${data[0].lat}`;
+                longitud = `${data[0].lon}`;
                 return true;
             }
             setError("Erro ao buscar Geolocalização. Endereço não encontrado, verifique os dados digitados e tente novamente.");
             return false;
         }catch(err){
-            //console.log("Erro Geolocation: ",err);
-            setError(err)
+            setError("Erro Geolocation: " + err);
             return false;
         }
     }
