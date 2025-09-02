@@ -180,7 +180,7 @@ export function Home({}) {
     if (!result.canceled) {
       const source = {uri: result.assets[0].uri}
       setImage(source);
-      setLoandding(true);
+      setloading(true);
       donorDispach({type: Types.LOADIMAGE, uri: source.uri, cb: changeImageCB})
     }
   }
