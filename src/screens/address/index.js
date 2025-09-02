@@ -33,7 +33,7 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1}) => {
 
     const [head, setHead]                   = useState("Cadastro de Endereço")
     const [error, setError]                 = useState(false);
-    const [loandding, setLoandding]         = useState(false);
+    const [loading, setloading]         = useState(false);
 
     const [titleErr, setTitleErr]           = useState("");
     const [cepErr, setCepErr]               = useState("");
@@ -72,7 +72,7 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1}) => {
     }
 
     async function confimPressed(){
-        setLoandding(true);
+        setloading(true);
         if(await validation()){
             let address = data.address;
 
@@ -99,11 +99,11 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1}) => {
             dispach({type: UPDATE, data: {...data, 'address':address}, dispatch: dispach, cb:updateCB});
             closeFunc();
         }
-        setLoandding(false);
+        setloading(false);
     }
     function updateCB(status, err){
         if(status){setError(err)};  
-        setLoandding(false); 
+        setloading(false); 
     }
     function apiCep(){
         const nCep = cep.replace(/[^0-9]/gi, "");
@@ -154,7 +154,7 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1}) => {
 
     return(
         <View style={Style.default}>
-            {loandding && <Loading/>}
+            {loading && <Loading/>}
             {error && <Error error={error} closeFunc={()=>setError(false)}/>}
 
             <TouchableOpacity style={{...Style.default, ...Style.container}} onPress={closeFunc}></TouchableOpacity>
