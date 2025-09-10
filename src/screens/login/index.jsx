@@ -117,13 +117,14 @@ export function Login() {
               fun={openScreen}
             />
             <SizedBox vertical={Size20} />
-            <Text style={{marginBottom: Size16, fontSize: Size16, color: Colors[Theme][5], ...FontRegular}}> Ou, fazer login com </Text>
+            {/* Ajustar login com google */}
+            {/* <Text style={{marginBottom: Size16, fontSize: Size16, color: Colors[Theme][5], ...FontRegular}}> Ou, fazer login com </Text>
             <ButtonImage 
               imageSrc = {img}
               width={Size50}
               height={Size50}
               fun={loginWithGoogle}
-            />
+            /> */}
         </ContainerData>
         
       </ScrollView>

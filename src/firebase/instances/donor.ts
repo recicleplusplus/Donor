@@ -5,7 +5,7 @@ const Donor = {
     name:       null,    
     phone:      null,
     photoUrl:   null,
-    prize:      0,
+    points:      0,
     donations:  [],
     address:    [],
     notifications: [],
