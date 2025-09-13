@@ -77,7 +77,6 @@ export function Home({}) {
           }
         }
         setdonorData(donorArray);
-        console.log('donorArray:', donorArray);
       }
     })
     .catch(error => {
@@ -99,7 +98,7 @@ export function Home({}) {
     donorData.forEach(item => {
       const typesArray = item.types.split(',').map(type => type.trim());
       const weight = parseInt(item.weight.match(/\d+/)[0], 10); // Extrai apenas o número da string "5 KG" e converte para inteiro
-      console.log('typesArray:', typesArray, 'weight:', weight);
+
       typesArray.forEach(type => {
         if (typesWeight[type]) {
           typesWeight[type] += weight;
@@ -108,7 +107,7 @@ export function Home({}) {
         }
       });
     });
-    console.log('typesWeight:', typesWeight);
+
     const statistic = {
       collectionsCompleted: donorData.length,
       eletronicKg: typesWeight["Eletrônico"] || 0,
