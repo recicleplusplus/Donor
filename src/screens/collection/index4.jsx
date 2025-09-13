@@ -57,7 +57,7 @@ export function Collection4({route}) {
   async function addNewDocument(tipo, caixas, dia, hora, endereco, observacao, peso, sacolas, user, coletor) {
     try {
       const userData = {
-        id: user?.uid || "none",
+        id: user?.id || "none",
         name: user?.name || "none",
         photoUrl: user?.photoUrl || "none",
       };
