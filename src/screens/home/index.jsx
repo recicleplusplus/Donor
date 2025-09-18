@@ -24,6 +24,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { getDatabase, ref, get, set } from "firebase/database";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { getDonorCurrentPoints } from "../../firebase/providers/donor";
+import { getValidImageUrl } from "../../utils/getValidImgUrl";
 
 export function Home({}) {
   const navigation = useNavigation();
@@ -98,7 +99,7 @@ export function Home({}) {
     donorData.forEach(item => {
       const typesArray = item.types.split(',').map(type => type.trim());
       const weight = parseInt(item.weight.match(/\d+/)[0], 10); // Extrai apenas o número da string "5 KG" e converte para inteiro
-  
+
       typesArray.forEach(type => {
         if (typesWeight[type]) {
           typesWeight[type] += weight;
@@ -107,14 +108,15 @@ export function Home({}) {
         }
       });
     });
+
     const statistic = {
       collectionsCompleted: donorData.length,
-      eletronicKg: typesWeight["eletronico"] || 0,
-      glassKg: typesWeight["vidro"] || 0,
-      metalKg: typesWeight["metal"] || 0,
-      oilKg: typesWeight["oil"] || 0,
-      paperKg: typesWeight["papel"] || 0,
-      plasticKg: typesWeight["plastico"] || 0
+      eletronicKg: typesWeight["Eletrônico"] || 0,
+      glassKg: typesWeight["Vidro"] || 0,
+      metalKg: typesWeight["Metal"] || 0,
+      oilKg: typesWeight["Óleo"] || 0,
+      paperKg: typesWeight["Papel"] || 0,
+      plasticKg: typesWeight["Plástico"] || 0
     }
     setTarefas(statistic);
     return statistic;
@@ -225,7 +227,7 @@ export function Home({}) {
                   <View style={styles.barContainer}>
                     {barData.map((bar, index) => (
                       <View key={index} style={styles.bar}>
-                        <View style={[styles.barFill, { height: bar.height, backgroundColor: bar.color }]}>
+                        <View style={[styles.barFill, { height: Math.max(0, Number.isFinite(bar.height) ? bar.height : 0), backgroundColor: bar.color }]}> 
                           <Text style={styles.barText}>{bar.value}</Text>
                         </View>
                         <Text style={styles.legend}>{bar.label}</Text>
@@ -251,7 +253,7 @@ export function Home({}) {
               <Text style={{ color: Colors[Theme][2], textAlign: 'left', padding: 20, fontWeight: 'bold' }}>Histórico</Text>
             </View>
             <ScrollView horizontal>
-            {donorData.map((item, index) => (
+            {/* {donorData.map((item, index) => (
               <View style={[styles.containerEdit, { marginRight: 50 }]} key={index}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <CardHome
@@ -260,13 +262,13 @@ export function Home({}) {
                     peso={item.weight}
                     sacolas={item.bags}
                     caixas={item.boxes}
-                    foto={item.collector.photoUrl}
+                    foto=''
                     nome={item.collector.name}
                     id={item.collector.id}
                   />
                 </View>
               </View>
-            ))}
+            ))} */}
             </ScrollView>
             <SizedBox vertical={5} />
        </ScrollView>
