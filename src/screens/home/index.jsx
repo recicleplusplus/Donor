@@ -23,6 +23,7 @@ import { CardHome } from "../address/components/card";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { getDatabase, ref, get, set } from "firebase/database";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { getDonorCurrentPoints } from "../../firebase/providers/donor";
 
 export function Home({}) {
   const navigation = useNavigation();
@@ -207,7 +208,6 @@ export function Home({}) {
        <ContainerTopClean
          fun={()=>{}}
          text={"          Bem vind@,\n"+"          "+donorState.name}
-         icon="information"
        />
        <SizedBox vertical={5} />
        <View style={styles.main}>
