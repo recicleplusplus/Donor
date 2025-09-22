@@ -1,5 +1,5 @@
 import { doc, getDoc, getDocs, collection, setDoc } from 'firebase/firestore';
-import { Material, UserType } from '../instances/material';
+import { Material } from '../instances/material';
 import { Firestore } from '../config/connection';
 
 let materialsCache: {} | null = null;

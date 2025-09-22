@@ -186,7 +186,7 @@ async function updateDonorPoints(id, pointsToAdd) {
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      const currentPoints = getDonorCurrentPoints(id);
+      const currentPoints = await getDonorCurrentPoints(id);
       const newPoints = currentPoints + pointsToAdd;
 
       await updateDoc(docRef, { points: newPoints });

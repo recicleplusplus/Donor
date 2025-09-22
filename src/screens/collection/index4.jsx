@@ -3,7 +3,6 @@ import { Text, View, TouchableOpacity } from "react-native";
 import { styles } from "./style";
 import { ScrollView } from "react-native-gesture-handler";
 import { ContainerTop, ContainerTopRegister4 } from "../../components/containers";
-import { Colors,Theme } from "../../constants/setting";
 import { SizedBox } from 'sizedbox';
 import { firebaseApp } from "firebase/firestore";
 import { getDatabase, push, ref } from "firebase/database";
@@ -11,9 +10,12 @@ import { DonorContext } from "../../contexts/donor/context";
 import { useContext, useState } from "react";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Snackbar } from "react-native-paper";
+import { useGetMaterials } from "../../hooks/useGetMaterials";
+import { updateDonorPoints } from "../../firebase/providers/donor";
 
 export function Collection4({route}) {
   const {donorState, donorDispach} = useContext(DonorContext)
+  const {data} = useGetMaterials();
   const basedImage = require("../../../assets/images/profile2.webp");
   const navigation = useNavigation();
   const database = getDatabase(firebaseApp);
@@ -33,6 +35,9 @@ export function Collection4({route}) {
   };
 
   const { tipo, endereco, caixas, sacolas, peso, dia, hora, observacao } = route.params;
+  const materialsTypes = tipo.map(type => type.label).join(", ");
+  const materialsTypesValues = tipo.map(type => type.value).join(", ");
+
   const addressArray = endereco.split(", ");
 
   const addressObj = {
@@ -61,6 +66,13 @@ export function Collection4({route}) {
         name: user?.name || "none",
         photoUrl: user?.photoUrl || "none",
       };
+
+      const probablyGains = tipo.split(',').map(type => {
+        const material = data[type.trim()];
+        return material ? material.points.donor * (parseInt(peso) || 0) : 0;
+      }).reduce((acc, curr) => acc + curr, 0);
+
+      updateDonorPoints(donorState.id, probablyGains);
   
       const newDocRef = await push(ref(database, 'recyclable'), {
         types: tipo,
@@ -93,13 +105,13 @@ export function Collection4({route}) {
       <ContainerTopRegister4 />
       <View style={styles.container}>
         <Text style={styles.titleText}>Resumo da Coleta</Text>
-        <Text style={styles.labelText}>Material: {tipo}</Text>
+        <Text style={styles.labelText}>Material: {materialsTypes}</Text>
         <Text style={styles.labelText}>Quantidade: {caixas} caixas e {sacolas} sacolas</Text>
         <Text style={styles.labelText}>Endereço: {endereco}</Text>
         <Text style={styles.labelText}>Coletas: dia {dia} e hora {hora}</Text>
         <Text style={styles.labelText}>Observação: {observacao}</Text>
         <SizedBox vertical={30} />
-        <TouchableOpacity style={styles.button2} onPress={() => addNewDocument(tipo, caixas, dia, hora, endereco, observacao, peso, sacolas, user, coletor)}>
+        <TouchableOpacity style={styles.button2} onPress={() => addNewDocument(materialsTypesValues, caixas, dia, hora, endereco, observacao, peso, sacolas, user, coletor)}>
           <Text style={styles.buttonText}>Cadastrar</Text>
         </TouchableOpacity>
         <SizedBox vertical={30} />

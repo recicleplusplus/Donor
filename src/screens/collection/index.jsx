@@ -16,15 +16,14 @@ export function Collection({ route }) {
   const [checkString, setCheckedString] = useState([]);
   const { donorState, donorDispatch } = useContext(DonorContext);
   const [checkedItems, setCheckedItems] = useState([]);
-  const tipos = checkedItems.join(", ");
 
   const itens = [
-    { label: 'Plástico', value: 'Plástico' },
-    { label: 'Metal', value: 'Metal' },
-    { label: 'Papel', value: 'Papel' },
-    { label: 'Eletrônico', value: 'Eletrônico' },
-    { label: 'Óleo', value: 'Óleo' },
-    { label: 'Vidro', value: 'Vidro' },
+    { label: 'Plástico', value: 'plastico'},
+    { label: 'Metal', value: 'metal' },
+    { label: 'Papel', value: 'papel' },
+    { label: 'Eletrônico', value: 'eletronico' },
+    { label: 'Óleo', value: 'oleo' },
+    { label: 'Vidro', value: 'vidro' },
   ];
 
   const checkBoxString = (value) => {
@@ -41,15 +40,15 @@ export function Collection({ route }) {
       return `${address.title}, ${address.street}, ${address.neighborhood}, ${address.city}, ${address.reference}, ${address.num}, ${address.cep}, ${address.latitude}, ${address.longitude}, ${address.state}`;
     }).join(";");
 
-    navigation.navigate('Collection2', { tipo: tipos, endereco: addressString });
+    navigation.navigate('Collection2', { tipo: checkedItems, endereco: addressString });
   };
 
-  const handleCheckboxChange = (value) => {
-    const isChecked = checkedItems.includes(value);
+  const handleCheckboxChange = (item) => {
+    const isChecked = checkedItems.some(checkedItem => checkedItem.value === item.value);
     if (isChecked) {
-      setCheckedItems(checkedItems.filter((item) => item !== value));
+      setCheckedItems(checkedItems.filter((checkedItem) => checkedItem.value !== item.value));
     } else {
-      setCheckedItems([...checkedItems, value]);
+      setCheckedItems([...checkedItems, item]);
     }
   };
 
@@ -98,18 +97,16 @@ export function Collection({ route }) {
           style={{ flexDirection: 'row', alignItems: 'center' }}
         >
           <Checkbox
-            value={checkedItems.includes(item.value)}
-            onValueChange={() => handleCheckboxChange(item.value)}
-            status={checkedItems.includes(item.value) ? 'checked' : 'unchecked'}
-            onPress={()=>handleCheckboxChange(item.value)}
+            status={checkedItems.some(checkedItem => checkedItem.value === item.value) ? 'checked' : 'unchecked'}
+            onPress={()=>handleCheckboxChange(item)}
             color={'green'}
             uncheckColor={'red'}
           />
           <Text
             style={{
               marginLeft: 8,
-              color: checkedItems.includes(item.value) ? 'green' : 'black',
-              fontWeight: checkedItems.includes(item.value) ? 'bold' : 'normal',
+              color: checkedItems.some(checkedItem => checkedItem.value === item.value) ? 'green' : 'black',
+              fontWeight: checkedItems.some(checkedItem => checkedItem.value === item.value) ? 'bold' : 'normal',
             }}
           >
             {item.label}
