@@ -82,12 +82,6 @@ export interface DonorContextType {
   donorDispatch: React.Dispatch<any>;
 }
 
-// Interfaces para propriedades dos componentes
-export interface HomeHeaderProps {
-  donorName: string;
-  image: ProfileImage;
-}
-
 export interface StatisticsCardProps {
   donorStatistics: DonorStatistics | null;
   styles: {
