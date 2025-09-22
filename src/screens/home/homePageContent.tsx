@@ -13,6 +13,7 @@ import { StatisticsCard } from '../../components/home/StatisticsCard';
 import React from 'react';
 import { DonorData } from '../../types/donor_types';
 import { ProfileImage } from '../../types/donor_types';
+import { HomeHeader } from '../../components/home/HomeHeader';
 
 interface HomePageContentProps {
 	donorState: any,
@@ -27,19 +28,7 @@ export function HomePageContent(props: HomePageContentProps) {
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
 			<ScrollView>
-				<ImageCircleIcon
-					size={130}
-					sizeIcon={0}
-					align={"flex-start"}
-					img={userImage as any}
-					color={Colors[Theme][5]}
-					bgColor={Colors[Theme][0]}
-				/>
-				<ContainerTopClean
-					fun={null}
-					text={"          Bem vind@,\n" + "          " + donorState.name}
-				/>
-				<SizedBox vertical={5} />
+				<HomeHeader donorName={donorState.name} userImage={userImage} />
 				<View style={styles.main}>
 					<Text style={{ color: Colors[Theme][2], textAlign: 'right', padding: 20, fontWeight: 'bold' }}>Avaliação</Text>
 				</View>

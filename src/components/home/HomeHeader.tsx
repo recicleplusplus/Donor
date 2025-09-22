@@ -1,18 +1,23 @@
 import React from 'react';
-import { View } from "react-native";
 import { Colors, Theme } from "../../constants/setting";
 import { ContainerTopClean } from "../containers";
 import { ImageCircleIcon } from "../images";
-import { HomeHeaderProps } from '../../types/donor_types';
+import SizedBox from '../SizedBox';
+import { ProfileImage } from '../../types/donor_types';
 
-export function HomeHeader({ donorName, image }: HomeHeaderProps): JSX.Element {
+interface HomeHeaderProps {
+  donorName: string;
+  userImage: ProfileImage;
+}
+
+export function HomeHeader({ donorName, userImage }: HomeHeaderProps): JSX.Element {
   return (
     <>
       <ImageCircleIcon
         size={130}
         sizeIcon={0}
         align={"flex-start"}
-        img={image as any}
+        img={userImage as any}
         color={Colors[Theme][5]}
         bgColor={Colors[Theme][0]}
       />
@@ -20,7 +25,7 @@ export function HomeHeader({ donorName, image }: HomeHeaderProps): JSX.Element {
         fun={null}
         text={`          Bem vind@,\n          ${donorName}`}
       />
-      <View style={{ marginVertical: 5, }} />
+      <SizedBox vertical={5} />
     </>
   );
 }
