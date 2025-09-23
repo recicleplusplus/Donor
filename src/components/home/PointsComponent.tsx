@@ -15,7 +15,6 @@ export function PointsComponent({ donorId }: PointsComponentProps) {
     return null;
   }
 
-  console.log('Donor Points:', donorPoints);
   return (
     <View style={{
       minWidth: 100,
