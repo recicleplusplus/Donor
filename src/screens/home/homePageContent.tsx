@@ -1,8 +1,9 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useGetDonorStatistics } from "./hooks/useGetDonorStatistics";
+import { useDonorPoints } from "./hooks/useDonorPoints";
 import { useProfileImage } from "./hooks/useProfileImage";
 import { Colors, Theme } from "../../constants/setting";
-import { View, ScrollView, Text, TouchableOpacity } from "react-native";
+import { View, ScrollView, Text, TouchableOpacity, Image } from "react-native";
 import { styles } from "./style";
 import { ContainerTopClean } from "../../components/containers";
 import SizedBox from '../../components/SizedBox';
@@ -10,10 +11,13 @@ import { ImageCircleIcon } from "../../components/images";
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StatisticsCard } from '../../components/home/StatisticsCard';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DonorData } from '../../types/donor_types';
 import { ProfileImage } from '../../types/donor_types';
 import { HomeHeader } from '../../components/home/HomeHeader';
+import { ButtonTextIcon } from '../../components/buttons';
+import { SimpleIcon } from '../../components/icons';
+import { PointsComponent } from '../../components/home/PointsComponent';
 
 interface HomePageContentProps {
 	donorState: any,
@@ -29,9 +33,9 @@ export function HomePageContent(props: HomePageContentProps) {
 		<GestureHandlerRootView style={{ flex: 1 }}>
 			<ScrollView>
 				<HomeHeader donorName={donorState.name} userImage={userImage} />
-				<View style={styles.main}>
-					<Text style={{ color: Colors[Theme][2], textAlign: 'right', padding: 20, fontWeight: 'bold' }}>Avaliação</Text>
-				</View>
+
+				<PointsComponent donorId={donorState.id} />
+
 				{donorStatistics ? (
 					<StatisticsCard donorStatistics={donorStatistics} styles={styles} />
 				) : (

@@ -22,10 +22,9 @@ export function HomeHeader({ donorName, userImage }: HomeHeaderProps): JSX.Eleme
         bgColor={Colors[Theme][0]}
       />
       <ContainerTopClean
-        fun={null}
         text={`          Bem vind@,\n          ${donorName}`}
       />
-      <SizedBox vertical={5} />
+      <SizedBox height={5} />
     </>
   );
 }

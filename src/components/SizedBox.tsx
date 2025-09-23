@@ -2,10 +2,10 @@ import React from "react";
 import { View } from "react-native";
 
 type SizedBoxProps = {
-  vertical?: number;
-  horizontal?: number;
+  height?: number;
+  width?: number;
 };
 
-export default function SizedBox({ vertical = 0, horizontal = 0 }: SizedBoxProps) {
-  return <View style={{ width: horizontal, height: vertical }} />;
+export default function SizedBox({ height = 0, width = 0 }: SizedBoxProps) {
+  return <View style={{ width: width, height: height }} />;
 }
