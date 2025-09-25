@@ -17,7 +17,7 @@ import { ProfileImage } from '../../types/donor_types';
 import { HomeHeader } from '../../components/home/HomeHeader';
 import { ButtonTextIcon } from '../../components/buttons';
 import { SimpleIcon } from '../../components/icons';
-import { PointsComponent } from '../../components/home/PointsComponent';
+import { PointsIndicator } from '../../components/home/PointsIndicator';
 
 interface HomePageContentProps {
 	donorState: any,
@@ -34,7 +34,7 @@ export function HomePageContent(props: HomePageContentProps) {
 			<ScrollView>
 				<HomeHeader donorName={donorState.name} userImage={userImage} />
 
-				<PointsComponent donorId={donorState.id} />
+				<PointsIndicator donorId={donorState.id} />
 
 				{donorStatistics ? (
 					<StatisticsCard donorStatistics={donorStatistics} styles={styles} />

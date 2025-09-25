@@ -11,12 +11,12 @@ export function Home({ }) {
   const { donorState } = useContext(DonorContext);
   const { image } = useProfileImage(donorState.photoUrl);
   const { data: recyclableDonorData, loading, error } = useGetRecyclableDonorData(donorState.id);
-  
+
   if (loading) {
     return <Loading />;
   }
 
-  if (error) {
+  if (error || !recyclableDonorData) {
     return <ErrorPage />;
   }
   return (
