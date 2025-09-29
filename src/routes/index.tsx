@@ -5,6 +5,7 @@ import { Colors, Theme } from "../constants/setting";
 import { DonorContext } from "../contexts/donor/context";
 import { TabsRoutes } from "./tab.routes";
 import { LogRoutes } from "./log.routes";
+import { Provider as PaperProvider } from 'react-native-paper';
 import React from "react";
  
 function Routes(){
@@ -20,9 +21,11 @@ function Routes(){
     const {donorState: {logged}, donorDispach} = useContext(DonorContext);
 
     return (
-        <NavigationContainer theme={MyTheme}>
-            {logged ? <TabsRoutes/> : <LogRoutes/>}
-        </NavigationContainer>
+        <PaperProvider>
+            <NavigationContainer theme={MyTheme}>
+                {logged ? <TabsRoutes/> : <LogRoutes/>}
+            </NavigationContainer>
+        </PaperProvider>
     )
 }
 

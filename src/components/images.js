@@ -3,6 +3,8 @@ import { Height } from "../constants/scales";
 import { ButtonIcon } from "./buttons";
 import { Colors, Theme } from "../constants/setting";
 
+const placeholderImage = require('../../assets/images/profile.jpg');
+
 export const ImageCircle = ({
     size = Height*0.16,                 // Tamanho da imagem
     img = "",                           // Caminho da imagem
@@ -18,11 +20,30 @@ export const ImageCircle = ({
 }
 
 export const ImageCircleDefault = ({
-    size = Height*0.16,                 // Tamanho da imagem
-    img = "",                           // Caminho da imagem
+    size = Height * 0.16,
+    img,
+    top = Height*0.093,
+    align = "flex-start"
 }) => {
+
+    // Imagem padrão de perfil
+    let imageSource = placeholderImage;
+
+    // Se 'img' for um objeto, tiver a propriedade 'uri' e essa uri for uma string não vazia usamos a foto
+    if (img && img.uri && typeof img.uri === 'string') {
+        imageSource = img;
+    } 
+    // Se 'img' for um número, significa que é um `require()` de uma imagem local passada como prop.
+    else if (typeof img === 'number') {
+        imageSource = img;
+    }
+
     return (
-        <Image style={{...Styles.circleImage, height:size, width:size}} source={img} alt="Imagem de Perfil" />
+       <Image 
+            style={{...Styles.circleImage, height: size, width: size}} 
+            source={imageSource} 
+            alt="Imagem de Perfil" 
+        />
     );
 }
 
@@ -59,6 +80,7 @@ export const ImageCircleHome = ({
         </View>
     );
 }
+
 
 const Styles = StyleSheet.create({
     circleContainer: {

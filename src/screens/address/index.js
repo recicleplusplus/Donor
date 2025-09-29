@@ -13,7 +13,7 @@ import { Error } from "../../components/error";
 import { UPDATEADDRESS, UPDATE } from "../../contexts/donor/types";
 
 
-export const RegisterAddress = ({data, dispach, closeFunc, idx = -1}) => {
+export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallback = () => {}}) => {
 
     //const {data, dispach}                   = useContext(DonorContext);
 
@@ -69,6 +69,7 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1}) => {
         return res;
     }
 
+    // Botão confirmar foi pressionado
     async function confimPressed(){
         setloading(true);
         if(await validation()){
@@ -93,15 +94,20 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1}) => {
                 address.push(newAddress);
             }
 
-            dispach({type: UPDATEADDRESS, payload: address})
+            // dispach({type: UPDATEADDRESS, payload: address})
+
             dispach({type: UPDATE, data: {...data, 'address':address}, dispatch: dispach, cb:updateCB});
+        } else {
+            // Falha na validação
+            onSaveCallback(true, "Falha na validação. Verifique os dados do endereço.");
             closeFunc();
+            setloading(false);
         }
-        setloading(false);
     }
     function updateCB(status, err){
-        if(status){setError(err)};  
         setloading(false); 
+        onSaveCallback(status, err);
+        closeFunc();
     }
     function apiCep(){
         const nCep = cep.replace(/[^0-9]/gi, "");
@@ -122,15 +128,27 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1}) => {
         });
     }
 
-    async function apiGeoLocation(){
-        const nCep = cep.replace(/[^0-9]/gi, "");
-        const address = `${street},${num},${neighborhood},${city},${state},${nCep}`;
+    async function apiGeoLocation() {
 
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+        // parâmetros estruturados para passar para API
+        const params = {
+            city: city.trim(),
+            state: state.trim(),
+            country: 'Brazil',
+            postalcode: cep.replace(/[^0-9]/gi, ""),
+            format: 'json' 
+        };
+
+        const queryString = new URLSearchParams(params).toString();
+        const url = `https://nominatim.openstreetmap.org/search?${queryString}`;
+        
+        // console.log("URL Estruturada:", url);
+
+        // 3. Fazemos a chamada à API como antes.
         const response = await fetch(url, {
-        headers: {
-            'User-Agent': 'seu-app/1.0'
-        }
+            headers: {
+                'User-Agent': 'seu-app/1.0'
+            }
         });
         return response;
     }
