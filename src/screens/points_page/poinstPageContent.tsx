@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, View, Image } from "react-native";
 import { Text } from "react-native-paper";
 import { Material } from "../../firebase/instances/material";
 import Header from "../../components/Header";
 import { useNavigation } from "@react-navigation/native";
+import TopDonatorsRanking from "./TopDonatorsRanking";
+import SizedBox from "../../components/SizedBox";
 
 interface PointsPageContentProps {
   materials: Record<string, Material>;
@@ -36,6 +38,11 @@ export default function PointsPageContent(Props: PointsPageContentProps) {
           </View>
           <Text style={{ fontSize: 14, textAlign: 'center' }}>As folhas 🍃 são pontos que você ganha toda vez que doa materiais recicláveis. Com elas, você pode trocar por produtos incríveis na nossa loja e ainda fazer a diferença para o meio ambiente.</Text>
         </View>
+        <SizedBox height={20} />
+
+        <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>🏆 Ranking dos Top Doadores</Text>
+        <TopDonatorsRanking />
+        <SizedBox height={20} />
         <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>Valores dos Materiais</Text>
         <View style={{
           padding: 20,

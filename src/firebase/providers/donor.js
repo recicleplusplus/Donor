@@ -1,5 +1,5 @@
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, getRedirectResult, signInWithRedirect, signOut } from "firebase/auth";
-import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, arrayUnion, collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 
 import { Firestore, Auth } from "../config/connection";
 import { VerifyErroCode } from "../config/errors";
@@ -201,6 +201,36 @@ async function updateDonorPoints(id, pointsToAdd) {
   }
 }
 
+async function getTopDonorsByDonations() {
+  try {
+    const donorsRef = collection(Firestore, "donor");
+    const q = query(
+      donorsRef,
+      orderBy("statistic.collectionsCompleted", "desc"),
+      limit(5)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const topDonors = [];
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      topDonors.push({
+        id: doc.id,
+        name: data.name || "Doador Anônimo",
+        collectionsCompleted: data.statistic?.collectionsCompleted || 0,
+        points: data.points || 0,
+        email: data.email
+      });
+    });
+    
+    return topDonors;
+  } catch (error) {
+    console.error("Erro ao buscar top doadores:", error);
+    return [];
+  }
+}
+
 
 export {
   Sign,
@@ -212,5 +242,6 @@ export {
   UpDateTokenNotification,
   UpDateNotificationList,
   getDonorCurrentPoints,
-  updateDonorPoints
+  updateDonorPoints,
+  getTopDonorsByDonations
 };
