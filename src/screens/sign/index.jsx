@@ -1,139 +1,125 @@
-import { useContext, useState, useEffect } from "react";
-import { ScrollView, View } from "react-native";
+import { useState } from "react";
+import { ScrollView, View, Alert } from "react-native";
 import { SizedBox } from 'sizedbox';
+import { supabase } from "../../lib/supabaseClient";
 
 import { ContainerTop, ContainerData } from "../../components/containers";
-import { InputIcon,InputIconMask } from "../../components/inputs";
-import { DonorContext } from "../../contexts/donor/context";
+import { InputIcon, InputIconMask } from "../../components/inputs";
 import { ButtonDefault } from "../../components/buttons";
-import { Colors,Theme } from "../../constants/setting";
+import { Colors, Theme } from "../../constants/setting";
 import { Loading } from "../../components/loading";
 import { Size20 } from "../../constants/scales";
 import { Error } from "../../components/error";
 import { Styles } from "./style";
 
 import * as Validation from "../../utils/validation";
-import * as Types from "../../contexts/donor/types";
 import * as Errors from "../../constants/erros";
 import * as Mask from "../../utils/marksFormat";
 
-
 export function Sign() {
+  
+    const [name, setName]     = useState("");
+    const [phone, setPhone]   = useState("");
+    const [email, setEmail]   = useState("");
+    const [pass, setPass]     = useState("");
 
-  const {donorState, donorDispach} = useContext(DonorContext)
-  const [pass, setPass]            = useState("");
-  const [hide, setHide]            = useState(false);
-  const [loading, setLoadding]   = useState(false);
-  const [error, setError]          = useState(false);
+    const [hide, setHide]         = useState(true);
+    const [loading, setLoading]   = useState(false);
+    const [error, setError]       = useState(false);
 
-  const [nameErr, setNameErr]   = useState("");
-  const [emailErr, setEmailErr] = useState("");
-  const [phoneErr, setPhoneErr] = useState("");
-  const [passErr, setPassErr]   = useState("");
+    const [nameErr, setNameErr]   = useState("");
+    const [emailErr, setEmailErr] = useState("");
+    const [phoneErr, setPhoneErr] = useState("");
+    const [passErr, setPassErr]   = useState("");
 
-  useEffect(()=>{},[])
-
-  function validation(){
-    let valid = false;
-    if(Validation.nameValidation(donorState.name)) {
-      setNameErr(Errors.nameErr);
-      valid = true;
+    function validation() {
+        let hasError = false;
+        if (Validation.nameValidation(name)) { setNameErr(Errors.nameErr); hasError = true; }
+        if (Validation.emailValidation(email)) { setEmailErr(Errors.emailErr); hasError = true; }
+        if (Validation.phoneValidation(phone)) { setPhoneErr(Errors.phoneErr); hasError = true; }
+        if (Validation.passValidation(pass)) { setPassErr(Errors.passErr); hasError = true; }
+        return hasError;
     }
 
-    if(Validation.emailValidation(donorState.email)) {
-      setEmailErr(Errors.emailErr);
-      valid = true;
+    async function sign() {
+        if (validation()) return;
+        setLoading(true);
+        try {
+            const { data, error: authError } = await supabase.auth.signUp({ email, password: pass });
+            if (authError) throw authError;
+
+            const { error: profileError } = await supabase.from('users').insert({
+                id: data.user.id,
+                name: name,
+                email: email,
+                phone: phone,
+                role: 'donor',
+            });
+            if (profileError) throw profileError;
+
+            Alert.alert("Cadastro realizado!", "Verifique seu e-mail para confirmar a conta.");
+        } catch (e) {
+            setError(e.message);
+        } finally {
+            setLoading(false);
+        }
     }
 
-    if(Validation.phoneValidation(donorState.phone)) {
-      setPhoneErr(Errors.phoneErr);
-      valid = true;
-    }
-
-    if(Validation.passValidation(pass)) {
-      setPassErr(Errors.passErr);
-      valid = true;
-    }
-
-    return valid;
-  }
-
-  function sign(){
-    if(validation()) return false;
-    setLoadding(true); 
-    donorDispach({type: Types.SIGN, payload: pass, dispatch: donorDispach, cb:callback});
-  }
-
-  function callback(error){
-    setLoadding(false);
-    setError(error);
-  }
-
-  const handleChange = (value, type) => {
-    donorDispach({type: type, payload: value});
-  }
-
-  return (
-    <View style={Styles.container}>
-      {error && <Error error={error} closeFunc={() => setError(false)}/>}
-      {loading && <Loading/>}
-      <ScrollView>
-        <ContainerTop/>
-        <ContainerData title={"Cadastro"}>
-            <InputIcon 
-              onChange = {(value) => {handleChange(value, Types.SETNAME); setNameErr("")}}
-              value = {donorState.name}
-              placeholder = {"Digite seu nome"}
-              label = "Nome"
-              icon = "account"
-              errorMsg={nameErr}
-            />
-
-            <InputIconMask 
-              onChange = {(value) => {handleChange(value, Types.SETPHONE); setPhoneErr("")}}
-              value = {donorState.phone}
-              placeholder = {"Digite seu contato"}
-              keyboardType={"number-pad"}
-              label = "Contato"
-              icon = "cellphone"
-              mask={Mask.phoneMask}
-              errorMsg={phoneErr}
-            />
-
-            <InputIcon 
-              onChange = {(value) => {handleChange(value, Types.SETEMAIL); setEmailErr("")}}
-              value = {donorState.email}
-              placeholder = {"Digite seu email"}
-              label = "Email"
-              icon = "email-outline"
-              errorMsg={emailErr}
-            />
-
-            <InputIcon 
-              onChange = {(value) => {setPass(value); setPassErr("")}}
-              value = {pass}
-              placeholder = {"Digite sua senha"}
-              label = "Senha"
-              msg="Caracteres: maiúsculos, minusculos, especiais e numericos são necessários"
-              icon = {hide ? "eye-outline" : "eye-off-outline"}
-              errorMsg={passErr}
-              btn = {true}
-              cb = {setHide}
-            />  
-
-            <SizedBox vertical={10} />
-
-            <ButtonDefault
-              title={"Cadastrar"}
-              color={Colors[Theme][2]}
-              textColor={Colors[Theme][7]}
-              textSize={Size20}
-              width={0.7}
-              fun={sign}
-            />      
-        </ContainerData>       
-      </ScrollView>
-      
-    </View>
-  );
+    return (
+        <View style={Styles.container}>
+            {error && <Error error={error} closeFunc={() => setError(false)} />}
+            {loading && <Loading />}
+            <ScrollView>
+                <ContainerTop />
+                <ContainerData title={"Cadastro"}>
+                    <InputIcon
+                        onChange={(value) => { setName(value); setNameErr("") }}
+                        value={name}
+                        placeholder={"Digite seu nome"}
+                        label="Nome"
+                        icon="account"
+                        errorMsg={nameErr}
+                    />
+                    <InputIconMask
+                        onChange={(value) => { setPhone(value); setPhoneErr("") }}
+                        value={phone}
+                        placeholder={"Digite seu contato"}
+                        keyboardType={"number-pad"}
+                        label="Contato"
+                        icon="cellphone"
+                        mask={Mask.phoneMask}
+                        errorMsg={phoneErr}
+                    />
+                    <InputIcon
+                        onChange={(value) => { setEmail(value); setEmailErr("") }}
+                        value={email}
+                        placeholder={"Digite seu email"}
+                        label="Email"
+                        icon="email-outline"
+                        errorMsg={emailErr}
+                    />
+                    <InputIcon
+                        onChange={(value) => { setPass(value); setPassErr("") }}
+                        value={pass}
+                        placeholder={"Digite sua senha"}
+                        label="Senha"
+                        icon={hide ? "eye-outline" : "eye-off-outline"}
+                        errorMsg={passErr}
+                        btn={true}
+                        cb={() => setHide(!hide)} // Lógica de esconder/mostrar senha
+                        secureTextEntry={hide}
+                    />
+                    <SizedBox vertical={10} />
+                    <ButtonDefault
+                        title={"Cadastrar"}
+                        color={Colors[Theme][2]}
+                        textColor={Colors[Theme][7]}
+                        textSize={Size20}
+                        width={0.7}
+                        fun={sign}
+                    />
+                </ContainerData>
+            </ScrollView>
+        </View>
+    );
 }

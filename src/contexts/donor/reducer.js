@@ -61,6 +61,13 @@ export const reducer = (state, action) => {
             console.log("PAYLOAD1: ",action.payload);
             return {...state, photoUrl: action.payload};
         }
+
+        case 'SET_DONOR_DATA': {
+            console.log('Atualizando o estado completo do doador:', action.payload);
+            const { addresses, ...userData } = action.payload;
+            return { ...state, ...userData, address: addresses };
+        }
+
         default: {
             console.log("Action não encontrada", action.type);
             return {...state};
