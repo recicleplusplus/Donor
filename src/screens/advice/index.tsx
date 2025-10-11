@@ -6,6 +6,7 @@ import { ContainerTopTitle } from "../../components/containers";
 import * as Advices from "../../constants/advices";
 import { ButtonOval } from "./components/button";
 import { Colors, Theme } from "../../constants/setting";
+import React from "react";
 
 
 export function Advice() {
