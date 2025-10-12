@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { DonorContext } from "./context";
 import { reducer } from "./reducer";
 import { donor } from "./data";
+import * as Types from "./types";
 
 async function fetchUserData() {
   try {
@@ -20,6 +21,8 @@ async function fetchUserData() {
       `) // Pede todos os dados do usuário E todos os seus endereços associados
       .eq('id', user.id)
       .single(); // Esperamos apenas um usuário
+
+    // console.log('DADOS DO USUÁRIO CARREGADOS DO SUPABASE:', data);
 
     if (error) throw error;
     
@@ -43,7 +46,7 @@ export const DonorProvider = ({children}) => {
             if (userData) {
                 // Se encontramos os dados do usuário, despachamos uma ação para
                 // atualizar o estado global com os dados reais do banco.
-                donorDispach({ type: 'SET_DONOR_DATA', payload: userData });
+                donorDispach({ type: Types.SET_DONOR_DATA, payload: userData });
             }
         };
 

@@ -1,18 +1,25 @@
-const LOGIN         = "USER_LOGING";
-const LOGOUT        = "USER_LOGOUT";
-const SIGN          = "USER_SIGN";
-const LOGINGOOGLE   = "USER_LOGINGOOGLE";
-const UPDATE        = "USER_UPDATE";
-const LOADIMAGE     = "USER_LOADIMAGE";
-const UPDATEADDRESS = "USER_UPDATEADDRESS";
-const ADDNOTIFICATION = "USER_ADDNOTIFICATION";
+// --- AÇÕES DE FLUXO DE DADOS ---
+export const SET_DONOR_DATA = 'SET_DONOR_DATA'; // carregamento inicial dos dados
+export const SET_PROFILE_DATA = 'SET_PROFILE_DATA'; // recarrega o nome e o numero na pagina de perfil
 
-const SETNAME       = "USER_SETNAME";
-const SETEMAIL      = "USER_SETEMAIL";
-const SETPHONE      = "USER_SETPHONE";
-const SETLOGGED     = "USER_SETLOGGED";
-const SETSIGNOUT    = "USER_SETSIGNOUT";
-const SETUPDATE     = "USER_SETUPDATE";
-const SETIMAGE      = "USER_SETIMAGE";
+// --- AÇÕES DE CRUD DE ENDEREÇO ---
+// Usado pelo RegisterAddress para adicionar um novo endereço ao estado
+export const ADD_ADDRESS = 'ADD_ADDRESS';
+// Usado pelo RegisterAddress para atualizar um endereço existente no estado
+export const UPDATE_ADDRESS = 'UPDATE_ADDRESS';
+// Usado pela tela Profile para remover um endereço do estado
+export const REMOVE_ADDRESS = 'REMOVE_ADDRESS';
 
-export {LOGIN, LOGOUT, SIGN, SETNAME, SETEMAIL, SETPHONE, SETLOGGED, LOGINGOOGLE, SETSIGNOUT, UPDATE, SETUPDATE, SETIMAGE, ADDNOTIFICATION, LOADIMAGE, UPDATEADDRESS};
+// --- AÇÕES DE ESTADO GERAL ---
+// Adiciona uma nova notificação à lista
+export const ADDNOTIFICATION = 'ADDNOTIFICATION';
+// Reseta o estado do usuário ao fazer logout
+export const SETSIGNOUT = 'SETSIGNOUT';
+// Atualiza o nome no estado (usado nos formulários)
+export const SETNAME = 'SETNAME';
+// Atualiza o email no estado (usado nos formulários)
+export const SETEMAIL = 'SETEMAIL';
+// Atualiza o telefone no estado (usado nos formulários)
+export const SETPHONE = 'SETPHONE';
+// Atualiza a URL da foto de perfil no estado
+export const SETIMAGE = 'SETIMAGE';

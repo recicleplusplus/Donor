@@ -1,8 +1,10 @@
-import {Donor} from "../../firebase/instances/donor"
-const donor  =  {
-    ...Donor,
+export const donor = {
+    id: null,
     logged: false,
-    id: null   
-}
-
-export { donor };
+    name: "",
+    email: "",
+    phone: "",
+    photoUrl: null,
+    address: [],
+    notifications: [],
+};

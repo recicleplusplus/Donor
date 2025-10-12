@@ -1,4 +1,4 @@
-import {View, StyleSheet, TouchableOpacity, ScrollView} from "react-native";
+import { View, StyleSheet, TouchableOpacity, ScrollView} from "react-native";
 import { Height, Size20, Width } from "../../constants/scales";
 import { Colors, Theme } from "../../constants/setting";
 import { ButtonDefault } from "../../components/buttons";
@@ -7,15 +7,16 @@ import { SizedBox } from "sizedbox";
 import { InputIcon, InputIconMask } from "../../components/inputs";
 import * as Mask from "../../utils/marksFormat";
 import { cepValidation } from "../../utils/validation";
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import { Loading } from "../../components/loading";
 import { Error } from "../../components/error";
-import { UPDATEADDRESS, UPDATE } from "../../contexts/donor/types";
+import * as Types from "../../contexts/donor/types";
+import { supabase } from "../../lib/supabaseClient";
+import { useDonor } from "../../contexts/donor";
 
 
-export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallback = () => {}}) => {
 
-    //const {data, dispach}                   = useContext(DonorContext);
+export const RegisterAddress = ({ addressToEdit, closeFunc, onSaveCallback, donorDispach }) => {
 
     const [title, setTitle]                 = useState("");
     const [cep, setCep]                     = useState("");
@@ -26,12 +27,9 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
     const [neighborhood, setNeighborhood]   = useState("");
     const [complement, setComplement]       = useState("");
 
-    let latitud = '';
-    let longitud = '';
-
     const [head, setHead]                   = useState("Cadastro de Endereço")
     const [error, setError]                 = useState(false);
-    const [loading, setloading]             = useState(false);
+    const [loading, setLoading]             = useState(false);
 
     const [titleErr, setTitleErr]           = useState("");
     const [cepErr, setCepErr]               = useState("");
@@ -40,19 +38,23 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
     const [cityErr, setCityErr]             = useState("");
     const [stateErr, setStateErr]           = useState("");
 
-    useEffect(()=>{
-        if(idx >= 0){
-            setTitle(data.address[idx].title)
-            setCep(data.address[idx].cep)
-            setStreet(data.address[idx].street)
-            setNum(data.address[idx].num)
-            setNeighborhood(data.address[idx].neighborhood)
-            setCity(data.address[idx].city)
-            setState(data.address[idx].state)
-            setComplement(data.address[idx].complement)
+    const isEditing = !!(addressToEdit && addressToEdit.id); // Determina se é modo de edição
+
+    useEffect(() => {
+        if (isEditing) {
+            setTitle(addressToEdit.title)
+            setCep(addressToEdit.cep)
+            setStreet(addressToEdit.street)
+            setNum(addressToEdit.num)
+            setNeighborhood(addressToEdit.neighborhood)
+            setCity(addressToEdit.city)
+            setState(addressToEdit.state)
+            setComplement(addressToEdit.complement)
             setHead("Edição de Endereço")
+        } else {
+            setHead("Cadastro de Endereço");
         }
-    },[]);
+    }, []);
 
     async function validation(){
         let res = true;
@@ -65,47 +67,63 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
         if(city   == ''){setCityErr(phase); res = false;}
         if(cepValidation(cep)) {setCepErr("Cep inválido"); res = false;}
 
-        res = res && await getGeoLocation();
+        // função de validação não depende mais da API de geolocalização
+        if (res) {
+            await getGeoLocation();
+        }
+
         return res;
     }
 
     // Botão confirmar foi pressionado
-    async function confimPressed(){
-        setloading(true);
-        if(await validation()){
-            let address = data.address;
+    async function confirmPressed() {
+        
+        setLoading(true);
+        try {
 
-            const newAddress = {
-                'title' : title.trim(),
-                'cep' : cep.trim(),
-                'num' : num.trim(),
-                'street' : street.trim(),
-                'state' : state.trim(), 
-                'city' : city.trim(),
-                'neighborhood': neighborhood.trim(),
-                'complement' : complement.trim(),
-                'latitude' : latitud.trim(),
-                'longitude' : longitud.trim()
+             // Validação
+            if (!await validation()) {
+                setLoading(false);
+                return;
             }
 
-            if(idx >= 0){
-                address[idx] = newAddress
-            }else{
-                address.push(newAddress);
-            }
+            const { data: { user } } = await supabase.auth.getUser();
 
-            // dispach({type: UPDATEADDRESS, payload: address})
+            const addressData = {
+                title: title.trim(),
+                cep: cep.replace(/[^0-9]/g, ""), 
+                street: street.trim(),
+                num: num.trim(),
+                neighborhood: neighborhood.trim(),
+                city: city.trim(),
+                state: state.trim(),
+                complement: complement.trim(),
+                user_id: user.id // associar ao usuário logado
+            };
 
-            dispach({type: UPDATE, data: {...data, 'address':address}, dispatch: dispach, cb:updateCB});
-        } else {
-            // Falha na validação
-            onSaveCallback(true, "Falha na validação. Verifique os dados do endereço.");
-            closeFunc();
-            setloading(false);
+            const { data: savedAddress, error } = isEditing 
+            ? await supabase.from('addresses').update(addressData).eq('id', addressToEdit.id).select().single()
+            : await supabase.from('addresses').insert(addressData).select().single();
+
+            if (error) throw error;
+
+            // Sucesso!
+            // Despacha a ação para atualizar o estado global
+            const actionType = isEditing ? Types.UPDATE_ADDRESS : Types.ADD_ADDRESS;
+            donorDispach({ type: actionType, payload: savedAddress });
+            
+            // Chama o callback de sucesso para o Profile.js
+            onSaveCallback(false, null, isEditing); 
+
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
         }
     }
+
     function updateCB(status, err){
-        setloading(false); 
+        setLoading(false); 
         onSaveCallback(status, err);
         closeFunc();
     }
@@ -144,7 +162,6 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
         
         // console.log("URL Estruturada:", url);
 
-        // 3. Fazemos a chamada à API como antes.
         const response = await fetch(url, {
             headers: {
                 'User-Agent': 'seu-app/1.0'
@@ -153,20 +170,24 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
         return response;
     }
     
-    async function getGeoLocation(){
-        try{
-            let responseObj = await apiGeoLocation();
-            let data = await responseObj.json();
-            if(!data.erro){
-                latitud =`${data[0].lat}`;
-                longitud = `${data[0].lon}`;
-                return true;
-            }
-            setError("Erro ao buscar Geolocalização. Endereço não encontrado, verifique os dados digitados e tente novamente.");
-            return false;
-        }catch(err){
-            setError("Erro Geolocation: " + err);
-            return false;
+    async function getGeoLocation() {
+    try {
+        console.log("Tentando obter geolocalização...");
+        let responseObj = await apiGeoLocation();
+        let data = await responseObj.json();
+
+        // Se a API encontrar algo, preenchemos as variáveis
+        if (data && data.length > 0) {
+            latitud = `${data[0].lat}`;
+            longitud = `${data[0].lon}`;
+            console.log("Geolocalização encontrada:", latitud, longitud);
+        } else {
+            // Se não encontrar, apenas avisamos no console e seguimos em frente
+            console.warn("API de geolocalização não encontrou coordenadas para este endereço.");
+        }
+        } catch (err) {
+            // Se houver um erro de rede, também só avisamos e seguimos em frente
+            console.error("Falha na chamada da API de geolocalização:", err);
         }
     }
 
@@ -183,7 +204,7 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
                     <SizedBox vertical={5}/>
 
                     <InputIcon 
-                        onChange = {(value) => {setTitle(value), setTitleErr("")}}
+                        onChangeText = {(value) => {setTitle(value), setTitleErr("")}}
                         value = {title}
                         placeholder = {"Digite o título"}
                         label = "Titulo *"
@@ -193,7 +214,7 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
 
                     <View style={Style.row}>
                         <InputIconMask 
-                            onChange = {(value) => {setCep(value); setCepErr('')}}
+                            onChangeText = {(value) => {setCep(value); setCepErr('')}}
                             value = {cep}
                             placeholder = {"Digite o CEP"}
                             keyboardType={"number-pad"}
@@ -204,7 +225,7 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
                             onBlur={getCepInf}
                         />
                         <InputIcon 
-                            onChange = {(value) => {setNum(value);setNumErr('')}}
+                            onChangeText = {(value) => {setNum(value);setNumErr('')}}
                             value = {num}
                             placeholder = {"Digite o Nº"}
                             keyboardType={"number-pad"}
@@ -215,7 +236,7 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
                     </View>
 
                     <InputIcon 
-                        onChange = {(value) => {setStreet(value); setStreetErr('')}}
+                        onChangeText = {(value) => {setStreet(value); setStreetErr('')}}
                         value = {street}
                         placeholder = {"Digite o nome da rua"}
                         label = "Rua *"
@@ -225,7 +246,7 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
 
                     <View style={Style.row}>
                         <InputIcon 
-                            onChange = {(value) => {setState(value); setStateErr('')}}
+                            onChangeText = {(value) => {setState(value); setStateErr('')}}
                             value = {state}
                             placeholder = {"Nome do estado"}
                             label = "Estado *"
@@ -233,7 +254,7 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
                             errorMsg={stateErr}
                         />
                         <InputIcon 
-                            onChange = {(value) => {setCity(value); setCityErr('')}}
+                            onChangeText = {(value) => {setCity(value); setCityErr('')}}
                             value = {city}
                             placeholder = {"Nome da cidade"}
                             label = "Cidade *"
@@ -244,14 +265,14 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
 
                     <View style={Style.row}>
                        <InputIcon 
-                            onChange = {setNeighborhood}
+                            onChangeText = {setNeighborhood}
                             value = {neighborhood}
                             placeholder = {"Nome do bairro"}
                             label = "Bairro"
                             flexS={0.375}
                         />
                          <InputIcon 
-                            onChange = {setComplement}
+                            onChangeText = {setComplement}
                             value = {complement}
                             placeholder = {"Ex: Ap. 621, Fundo."}
                             label = "Complemento"
@@ -279,7 +300,7 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
                             textColor={Colors[Theme][1]}
                             radius={16}
                             textSize={Size20*0.9}
-                            fun={confimPressed}
+                            fun={confirmPressed}
                         />
                     </View>
                 </ScrollView>

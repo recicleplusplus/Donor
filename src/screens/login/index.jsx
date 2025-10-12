@@ -60,7 +60,7 @@ export function Login() {
                 <ContainerTop />
                 <ContainerData title={"Login"}>
                     <InputIcon
-                        onChange={(value) => { setEmail(value); setEmailErr("") }}
+                        onChangeText={(value) => { setEmail(value); setEmailErr("") }}
                         value={email}
                         placeholder={"Digite seu email"}
                         label="Email"
@@ -68,7 +68,7 @@ export function Login() {
                         errorMsg={emailErr}
                     />
                     <InputIcon
-                        onChange={(value) => { setPass(value); setPassErr("") }}
+                        onChangeText={(value) => { setPass(value); setPassErr("") }}
                         value={pass}
                         placeholder={"Digite sua senha"}
                         label="Senha"

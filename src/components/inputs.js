@@ -7,7 +7,7 @@ import { Width, FontRegular, Size14 } from "../constants/scales";
 import { useState } from "react";
 
 export const InputIcon = ({
-    onChange = null ,               // Função que salva o valor digitado na variável referênciada
+    onChangeText = null ,               // Função que salva o valor digitado na variável referênciada
     onBlur = null,                  // Função que executa quando o objeto receber foco
     value = null,                   // Variavel de relação do input
     label,                          // Label do input
@@ -35,7 +35,7 @@ export const InputIcon = ({
             <TextInput 
                 editable={enable}
                 style = {styles.inputStyle}
-                onChangeText={onChange}
+                onChangeText={onChangeText}
                 type="custom"
                 onBlur={onBlur}
                 value={value}
@@ -63,7 +63,7 @@ export const InputIcon = ({
 }
 
 export const InputIconMask = ({
-    onChange = null ,               // Função que salva o valor digitado na variável referênciada
+    onChangeText = null ,               // Função que salva o valor digitado na variável referênciada
     onBlur = null,                  // Função que executa quando o objeto perder foco
     value = null,                   // Variavel de relação do input
     label,                          // Label do input
@@ -92,7 +92,7 @@ export const InputIconMask = ({
             <MaskedTextInput 
                 editable = {enable}
                 style = {styles.inputStyle}
-                onChangeText= {onChange}
+                onChangeText= {onChangeText}
                 type="custom"
                 mask= {mask}
                 onBlur={onBlur}

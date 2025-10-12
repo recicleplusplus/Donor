@@ -73,7 +73,7 @@ export function Sign() {
                 <ContainerTop />
                 <ContainerData title={"Cadastro"}>
                     <InputIcon
-                        onChange={(value) => { setName(value); setNameErr("") }}
+                        onChangeText={(value) => { setName(value); setNameErr("") }}
                         value={name}
                         placeholder={"Digite seu nome"}
                         label="Nome"
@@ -81,7 +81,7 @@ export function Sign() {
                         errorMsg={nameErr}
                     />
                     <InputIconMask
-                        onChange={(value) => { setPhone(value); setPhoneErr("") }}
+                        onChangeText={(value) => { setPhone(value); setPhoneErr("") }}
                         value={phone}
                         placeholder={"Digite seu contato"}
                         keyboardType={"number-pad"}
@@ -91,7 +91,7 @@ export function Sign() {
                         errorMsg={phoneErr}
                     />
                     <InputIcon
-                        onChange={(value) => { setEmail(value); setEmailErr("") }}
+                        onChangeText={(value) => { setEmail(value); setEmailErr("") }}
                         value={email}
                         placeholder={"Digite seu email"}
                         label="Email"
@@ -99,7 +99,7 @@ export function Sign() {
                         errorMsg={emailErr}
                     />
                     <InputIcon
-                        onChange={(value) => { setPass(value); setPassErr("") }}
+                        onChangeText={(value) => { setPass(value); setPassErr("") }}
                         value={pass}
                         placeholder={"Digite sua senha"}
                         label="Senha"

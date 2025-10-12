@@ -1,45 +1,49 @@
 import * as Types from "./types";
 import { donor } from "./data";
-import { Sign, Login, LoginWithGoogle, SignOut, UpDate, UploadImage } from "../../firebase/providers/donor"
-
 
 export const reducer = (state, action) => {
+    console.log(`[REDUCER] Ação recebida: ${action.type}`);
+
     switch(action.type){
-        case Types.LOGIN: {
-            Login({email: state.email, pass: action.payload}, action.dispatch, action.cb);
-            return {...state};
+
+        // Ação para adicionar um endereço à lista
+        case Types.ADD_ADDRESS: {
+            return {
+                ...state,
+                // Cria um NOVO array com os endereços antigos + o novo
+                address: [...state.address, action.payload],
+            };
         }
-        case Types.LOGOUT: {
-            SignOut(action.cb)
-            return {...state};
+        // Ação para atualizar um endereço existente na lista
+        case Types.UPDATE_ADDRESS: {
+            return {
+                ...state,
+                // .map() cria um NOVO array, substituindo apenas o item com o ID correspondente
+                address: state.address.map(addr =>
+                    addr.id === action.payload.id ? action.payload : addr
+                ),
+            };
         }
-        case Types.SIGN: {
-            Sign({...state, pass: action.payload}, action.dispatch, action.cb);
-            return {...state};
+        // Ação para remover um endereço da lista
+        case Types.REMOVE_ADDRESS: {
+            return {
+                ...state,
+                // .filter() cria um NOVO array, sem o item com o ID correspondente
+                address: state.address.filter(addr => addr.id !== action.payload),
+            };
         }
-        case Types.LOGINGOOGLE: {
-            LoginWithGoogle(action.dispatch);
-            return {...state};
-        }
-        case Types.UPDATE: {
-            UpDate(action.data, action.dispatch, action.cb);
-            return {...state};
-        }
-        case Types.LOADIMAGE: {
-            UploadImage({id: state.id, uri : action.uri}, action.cb);
-            return{...state};
-        }
-        case Types.UPDATEADDRESS: {
-            return{...state, address: action.payload};
-        }
+
+        // --- AÇÕES DE ESTADO GERAL ---
         case Types.ADDNOTIFICATION: {
-            newNot = state.notifications
-            newNot.push(action.payload)
-            return{...state, notifications: newNot}
+            // Forma imutável de adicionar um item a um array.
+            // Em vez de modificar o array existente, criamos um novo.
+            return {
+                ...state, 
+                notifications: [...state.notifications, action.payload]
+            };
         }
-
-
         case Types.SETSIGNOUT: {
+            // Reseta o estado para o inicial, marcando como deslogado
             return {...donor, logged: false};
         }
         case Types.SETNAME: {
@@ -51,26 +55,39 @@ export const reducer = (state, action) => {
         case Types.SETPHONE: {
             return {...state, phone: action.payload};
         }
-        case Types.SETLOGGED: {
-            return {...state, ...action.payload, logged: true};
-        }
-        case Types.SETUPDATE: {
-            return {...state, ...action.payload};
-        }
         case Types.SETIMAGE: {
-            console.log("PAYLOAD1: ",action.payload);
             return {...state, photoUrl: action.payload};
         }
 
-        case 'SET_DONOR_DATA': {
-            console.log('Atualizando o estado completo do doador:', action.payload);
+        // Esta ação é chamada pelo DonorProvider para popular o estado inicial
+        // com os dados do usuário e seus endereços vindos do Supabase.
+        case Types.SET_DONOR_DATA: {
+            if (!action.payload) return state; // Proteção caso o payload seja nulo
+
+            // Evitar problemas de letras maiusculas ou minusculas na URL
+            const photoUrlFromPayload = action.payload.photo_url || action.payload.photoUrl;
+
             const { addresses, ...userData } = action.payload;
-            return { ...state, ...userData, address: addresses };
+
+            return { 
+                ...state, 
+                ...userData, 
+                photoUrl: photoUrlFromPayload,
+                address: addresses || [] 
+            };
+        }
+
+        case Types.SET_PROFILE_DATA: {
+            return {
+                ...state,
+                name: action.payload.name,
+                phone: action.payload.phone,
+            };
         }
 
         default: {
-            console.log("Action não encontrada", action.type);
-            return {...state};
+            console.warn(`[REDUCER] Ação não reconhecida: ${action.type}`);
+            return state;
         }
     }
 }

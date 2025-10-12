@@ -19,9 +19,11 @@ import * as Validation from "../../utils/validation";
 import { RegisterAddress } from "../address";
 import { AddressCard } from "../address/components/card";
 import { Snackbar } from "react-native-paper";
+import { supabase } from "../../lib/supabaseClient";
 
 export function Profile() {
   const {donorState, donorDispach} = useContext(DonorContext)
+
   const [editProf, setEditProf]    = useState(false);
 
   const [name, setName]            = useState("");
@@ -34,8 +36,7 @@ export function Profile() {
   const [register, setResgister]   = useState(false);
   const [index, setIndex]          = useState(-1);
 
-  const basedImage                       = require("../../../assets/images/profile2.webp");
-  const [image, setImage]                = useState(basedImage);
+  const basedImage                       = require("../../../assets/images/profile2.webp");;
 
   //snackbar
   const [snackbarVisible, setSnackbarVisible] = useState(false);
@@ -43,17 +44,11 @@ export function Profile() {
   const [isSnackbarError, setIsSnackbarError] = useState(false);
 
   // UseEffect  functions
-  useEffect(()=>{
-    setName(donorState.name);
-    setPhone(donorState.phone); 
-  },[]);
+  useEffect(() => {
+      if (donorState.name) setName(donorState.name);
+      if (donorState.phone) setPhone(donorState.phone); 
+    }, [donorState.name, donorState.phone]);
 
-  useEffect(()=>{
-    setImage(donorState.photoUrl 
-      ? {uri: donorState.photoUrl} 
-      : basedImage);
-  },[donorState.photoUrl]);
-   
   const showSnackbar = (message, isError = false) => {
     setSnackbarMessage(message);
     setIsSnackbarError(isError);
@@ -61,29 +56,70 @@ export function Profile() {
   };
 
   // Image Profile functions
-  async function changeProfileImage(){
+  async function changeProfileImage() {
+    // 1. Abre a galeria para o usuário escolher a imagem
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [5, 5],
-      quality: 1,
-    });  
+      aspect: [1, 1],
+      quality: 0.6,
+    });
 
-    if (!result.canceled) {
-      const source = {uri: result.assets[0].uri}
-      setImage(source);
-      setloading(true);
-      donorDispach({type: Types.LOADIMAGE, uri: source.uri, cb: changeImageCB})
+    if (result.canceled) {
+      return; // Usuário cancelou
+    }
+    
+    setloading(true);
+    try {
+      const asset = result.assets[0];
+      const fileExt = asset.uri.split('.').pop();
+      const filePath = `${donorState.id}/profile.${fileExt}`; // Ex: 1234-abcd/profile.jpg
+
+      // objeto FormData para o Supabase no React Native
+      const formData = new FormData();
+      formData.append('file', {
+        uri: asset.uri,
+        name: `photo.${fileExt}`,
+        // Ajuste para garantir um MimeType válido como 'image/jpeg' ou 'image/png'
+        type: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`,
+      });
+
+
+      // 2. Faz o upload da imagem para o Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars') // Nome do "bucket" (pasta) no Storage
+        .upload(filePath, formData, { upsert: true }); // upsert: true sobrescreve se já existir
+
+      if (uploadError) throw uploadError;
+
+      // 3. Pega a URL pública da imagem que acabamos de enviar
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+      
+      const publicUrl = `${urlData.publicUrl}?t=${new Date().getTime()}`;
+
+      // 4. Atualiza a coluna 'photo_url' do usuário na tabela 'users'
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ photo_url: publicUrl })
+        .eq('id', donorState.id);
+
+      if (updateError) throw updateError;
+      
+      // 5. Avisa o reducer para atualizar a imagem na tela
+      donorDispach({ type: Types.SETIMAGE, payload: publicUrl });
+      showSnackbar("Imagem de perfil atualizada!");
+
+    } catch (err) {
+      
+      console.error('ERRO NO UPLOAD:', JSON.stringify(err, null, 2));
+      setError('Falha no upload da imagem. Verifique o console para mais detalhes.');
+    } finally {
+      setloading(false);
     }
   }
-  function changeImageCB (state, error) {
-    if(state){
-      setError(error);
-    }else {
-      donorDispach({type:Types.SETIMAGE, payload: error})
-      donorDispach({type: Types.UPDATE, data: {...donorState, photoUrl: error}, dispatch: donorDispach, cb:updateCB});
-    }
-  }
+
 
   // Edit Profile Functions
   function editProfile(){
@@ -93,18 +129,35 @@ export function Profile() {
     }
     setEditProf((value) => !value);
   }
-  function confirmChanges(){
-    if(validation()){
-      donorDispach({type: Types.UPDATE, data: {...donorState, 'name': name, 'phone': phone}, dispatch: donorDispach, 
-                            cb:updateCB});
-      setloading(true);
+
+  // Confirma a modificação do nome/numero de telefone do perfil
+  async function confirmChanges() {
+    if (!validation()) return; // A validação já mostra os erros
+    
+    setloading(true);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ name: name, phone: phone })
+        .eq('id', donorState.id);
+
+      if (error) throw error;
+
+      donorDispach({ 
+        type: Types.SET_PROFILE_DATA, 
+        payload: { name: name, phone: phone } 
+      });
+      
+      showSnackbar("Perfil atualizado com sucesso!");
+      setEditProf(false);
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setloading(false);
     }
   }
-  function updateCB(status, err){
-    if(status){setError(err)};  
-    setloading(false); 
-    setEditProf(false)
-  }
+
   function validation(){
     let valid = true;
     if(Validation.nameValidation(name)) {
@@ -131,21 +184,32 @@ export function Profile() {
   }
 
   // Address Functions
-  function addAddress(idex = -1){
-    setIndex(idex);
-    setResgister((last) => !last);
+  function openAddressModal(addressToEdit = null){
+    // Se estamos editando, passamos o objeto. Se adicionando, passamos null.
+    setIndex(addressToEdit); // Usaremos 'index' para armazenar o objeto a ser editado
+    setResgister(true);
   }
-  function removeAddress(index){
-    let address = donorState.address;
-    address.splice(index, 1)
-    donorDispach({type: Types.UPDATEADDRESS, payload: address});
-    donorDispach({type: Types.UPDATE, data: {...donorState, 'address':address}, dispatch: donorDispach, cb:removeAddressCb});
+
+  async function removeAddress(addressId) {
+    setloading(true);
+    try {
+      const { error } = await supabase
+        .from('addresses')
+        .delete()
+        .eq('id', addressId);
+
+      if (error) throw error;
+
+      donorDispach({ type: Types.REMOVE_ADDRESS, payload: addressId });
+      showSnackbar("Endereço removido com sucesso!");
+
+    } catch (err) {
+      showSnackbar("Erro ao remover endereço: " + err.message, true);
+    } finally {
+      setloading(false);
+    }
   }
-  function removeAddressCb(status, err){
-    if(status){ showSnackbar(err, true); }
-    else { showSnackbar("Endereço removido com sucesso!"); }
-    setloading(false); 
-  }
+
   function onSaveAddressCb(status, err, isEditing) {
     setResgister(false);
     setloading(false);
@@ -156,18 +220,19 @@ export function Profile() {
     }
   }
 
+  const imageSource = donorState.photoUrl ? { uri: donorState.photoUrl } : basedImage;
+
   return (
     <View style={{...Styles.container, flex: 1}}>
 
       {error && <Error error={error} closeFunc={()=>setError(false)}/>}
       {loading && <Loading/>}
-      {register && <RegisterAddress
-                      data={donorState}
-                      dispach={donorDispach}
-                      closeFunc={() => setResgister(false)}
-                      idx={index}
-                      onSaveCallback={(status, err) => onSaveAddressCb(status, err, index > -1)}
-                    />}
+        {register && <RegisterAddress
+          addressToEdit={index}
+          closeFunc={() => setResgister(false)}
+          onSaveCallback={onSaveAddressCb}
+          donorDispach={donorDispach}
+        />}
 
       <ScrollView>
         <ContainerTopClean
@@ -180,21 +245,12 @@ export function Profile() {
           size={Size110 * 1.25}
           sizeIcon={Size28}
           icon={"camera"}
-          img={image}
+          img={imageSource}
           fun={changeProfileImage}
           color={Colors[Theme][5]}
           bgColor={Colors[Theme][0]}
         />
 
-        {/* <View style={Styles.row}>
-          <ButtonIcon 
-            btn = {true}
-            name={ Theme == "dark" ? 'lightbulb-on-outline' : 'lightbulb-off-outline'}
-            color={Colors[Theme][5]}
-            margin={22}
-            size={Size28}
-            fun={ChangeTheme}
-          /> */}
           <ButtonIcon 
             btn = {true}
             name={"square-edit-outline"}
@@ -203,12 +259,11 @@ export function Profile() {
             size={Size28}
             fun={editProfile}
           />
-        {/* </View> */}
 
         <View style={{...Styles.containerEdit, opacity: editProf ? 1 : 0.6}}>
           <InputIcon
             enable = {editProf} 
-            onChange = {(value) => {setName(value); setNameErr("")}}
+            onChangeText = {(value) => {setName(value); setNameErr("")}}
             value = {name}
             placeholder = {"Digite seu nome"}
             label = "Nome"
@@ -217,7 +272,7 @@ export function Profile() {
           />
           <InputIconMask 
             enable = {editProf}
-            onChange = {(value) => {setPhone(value); setPhoneErr("");}}
+            onChangeText = {(value) => {setPhone(value); setPhoneErr("");}}
             value = {phone}
             placeholder = {"Digite seu contato"}
             keyboardType={"number-pad"}
@@ -249,13 +304,18 @@ export function Profile() {
             color={Colors[Theme][4]}
             btn={true}
             size={Size28*1.3}
-            fun={addAddress}
+            fun={() => openAddressModal()}
           />
         </View>
         <View style={Styles.containerEdit}>
-          {donorState.address.map((address, index) => {
+          {donorState.address && donorState.address.map((address) => {
             return (
-              <AddressCard address={address} editFn={() => addAddress(index)} removeFn={() => removeAddress(index)} key={index}/>
+              <AddressCard 
+                address={address} 
+                editFn={() => openAddressModal(address)}
+                removeFn={() => removeAddress(address.id)}
+                key={address.id}
+              />
             );
           })}
 
