@@ -12,11 +12,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Snackbar } from "react-native-paper";
 import { useGetMaterials } from "../../hooks/useGetMaterials";
 import { updateDonorPoints } from "../../firebase/providers/donor";
+import * as Types from "../../contexts/donor/types";
 
 export function Collection4({route}) {
   const {donorState, donorDispach} = useContext(DonorContext)
   const {data} = useGetMaterials();
-  const basedImage = require("../../../assets/images/profile2.webp");
   const navigation = useNavigation();
   const database = getDatabase(firebaseApp);
   const [visible, setVisible] = useState(false);
@@ -59,7 +59,7 @@ export function Collection4({route}) {
     setTimeout(() => setVisible(false), 2000); // Fecha após 2 segundos
   };
 
-  async function addNewDocument(tipo, caixas, dia, hora, endereco, observacao, peso, sacolas, user, coletor) {
+  async function addNewDocument(tipo, caixas, dia, hora, observacao, peso, sacolas, user, coletor) {
     try {
       const userData = {
         id: user?.id || "none",
@@ -72,8 +72,9 @@ export function Collection4({route}) {
         return material ? material.points.donor * (parseInt(peso) || 0) : 0;
       }).reduce((acc, curr) => acc + curr, 0);
 
-      updateDonorPoints(donorState.id, probablyGains);
-  
+      let newPoints = await updateDonorPoints(donorState.id, probablyGains);
+      donorDispach?.({ type: Types.SETUPDATE, payload: { points: newPoints } });
+      
       const newDocRef = await push(ref(database, 'recyclable'), {
         types: tipo,
         boxes: parseInt(caixas),

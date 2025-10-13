@@ -1,42 +1,39 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BalanceCard from '../../components/store/BalanceCard';
 import { Product } from '../../firebase/instances/products';
 import HorizontalProducts from '../../components/store/HorizontalProducts';
 import SizedBox from '../../components/SizedBox';
 import StoreHeader from './storeHeader';
+import { getProductsWithDiscount, getProductsWithoutDiscount } from '../../firebase/instances/products';
+import { useFocusEffect } from '@react-navigation/native';
+import { getDonorCurrentPoints } from '../../firebase/providers/donor';
+import { DonorContext } from '../../contexts/donor/context';
+import * as Types from '../../contexts/donor/types';
 
 const { width: screenWidth } = Dimensions.get("window");
 
-export default function Store({ route }: { route: any }) {
-  const { donorPoints = 0 } = route.params || {};
+const categories = [
+  { name: 'Todos', icon: 'grid', color: '#4CAF50' },
+  { name: 'Casa', icon: 'home', color: '#4CAF50' },
+  { name: 'Moda', icon: 'shirt', color: '#2196F3' },
+  { name: 'Eletrônicos', icon: 'phone-portrait', color: '#FF9800' },
+  { name: 'Livros', icon: 'book', color: '#9C27B0' },
+  { name: 'Esportes', icon: 'football', color: '#F44336' },
+  { name: 'Beleza', icon: 'flower', color: '#E91E63' },
+];
+
+export default function Store({ route, navigation }: { route: any, navigation: any }) {
+  const donorContext = useContext(DonorContext as any) as any;
+  const donorPoints = donorContext?.donorState?.points || 0;
+
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchText, setSearchText] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-
-  const categories = [
-    { name: 'Casa', icon: 'home', color: '#4CAF50' },
-    { name: 'Moda', icon: 'shirt', color: '#2196F3' },
-    { name: 'Eletrônicos', icon: 'phone-portrait', color: '#FF9800' },
-    { name: 'Livros', icon: 'book', color: '#9C27B0' },
-    { name: 'Esportes', icon: 'football', color: '#F44336' },
-    { name: 'Beleza', icon: 'flower', color: '#E91E63' },
-  ];
-
-  const featuredProducts = [
-    { id: 1, name: 'Smartphone Eco', price: 150, imageUrl: require('../../../assets/images/greenLogo.png'), rating: 4.5, originalPrice: 200, category: 'Eletrônicos', stock: 10 },
-    { id: 2, name: 'Tênis Sustentável', price: 80, imageUrl: require('../../../assets/images/greenLogo.png'), rating: 4.8, originalPrice: 120, category: 'Moda', stock: 5 },
-    { id: 3, name: 'Livro Reciclado', price: 25, imageUrl: require('../../../assets/images/greenLogo.png'), rating: 4.2, originalPrice: 35, category: 'Livros', stock: 8 },
-    { id: 4, name: 'Camiseta Orgânica', price: 45, imageUrl: require('../../../assets/images/greenLogo.png'), rating: 4.6, originalPrice: 60, category: 'Moda', stock: 12 },
-  ];
-
-  const popularProducts = [
-    { id: 5, name: 'Garrafa Reutilizável', price: 20, imageUrl: require('../../../assets/images/greenLogo.png'), rating: 4.9, category: 'Casa', stock: 15 },
-    { id: 6, name: 'Kit de Jardinagem', price: 35, imageUrl: require('../../../assets/images/greenLogo.png'), rating: 4.3, category: 'Casa', stock: 10 },
-    { id: 7, name: 'Notebook Refurbished', price: 200, imageUrl: require('../../../assets/images/greenLogo.png'), rating: 4.7, category: 'Eletrônicos', stock: 4 },
-    { id: 8, name: 'Bolsa Ecológica', price: 30, imageUrl: require('../../../assets/images/greenLogo.png'), rating: 4.4, category: 'Moda', stock: 20 },
-  ];
+  const promotionalProducts = getProductsWithDiscount();
+  const popularProducts = getProductsWithoutDiscount();
+  const featuredProducts = promotionalProducts.slice(0, 5); // Top 5 ofertas especiais
 
   // Função para filtrar produtos por categoria
   const getFilteredProducts = (products: Product[]) => {
@@ -56,8 +53,6 @@ export default function Store({ route }: { route: any }) {
 
     return filtered;
   };
-
-  const filteredPopularProducts = getFilteredProducts(popularProducts);
 
   return (
     <>
@@ -87,7 +82,11 @@ export default function Store({ route }: { route: any }) {
             {getFilteredProducts([...featuredProducts, ...popularProducts]).length > 0 ? (
               <View style={styles.popularGrid}>
                 {getFilteredProducts([...featuredProducts, ...popularProducts]).map((product) => (
-                  <TouchableOpacity key={product.id} style={styles.popularProductCard}>
+                  <TouchableOpacity
+                    key={product.id}
+                    style={styles.popularProductCard}
+                    onPress={() => navigation.navigate('Product', { id: product.id })}
+                  >
                     <Image source={product.imageUrl} style={styles.popularProductImage} resizeMode="contain" />
                     <View style={styles.popularProductInfo}>
                       <Text style={styles.popularProductName} numberOfLines={2}>{product.name}</Text>
@@ -115,25 +114,6 @@ export default function Store({ route }: { route: any }) {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.categoriesContainer}
               >
-                {/* Botão "Todos" */}
-                <TouchableOpacity
-                  style={[
-                    styles.categoryCard
-                  ]}
-                  onPress={() => setSelectedCategory('Todos')}
-                >
-                  <View style={[
-                    styles.categoryIcon,
-                    { backgroundColor: selectedCategory === 'Todos' ? '#4CAF50' : '#ddd' }
-                  ]}>
-                    <Ionicons name="grid" size={24} color="#fff" />
-                  </View>
-                  <Text style={[
-                    styles.categoryName,
-                    selectedCategory === 'Todos' && styles.selectedCategoryName
-                  ]}>Todos</Text>
-                </TouchableOpacity>
-
                 {categories.map((category, index) => (
                   <TouchableOpacity
                     key={index}
@@ -161,7 +141,10 @@ export default function Store({ route }: { route: any }) {
               <View style={[styles.section, { paddingBottom: 15 }]}>
                 <Text style={styles.sectionTitle}>Ofertas Especiais</Text>
                 <SizedBox height={10} />
-                <HorizontalProducts products={featuredProducts} />
+                <HorizontalProducts
+                  products={featuredProducts}
+                  onPressItem={(product) => navigation.navigate('Product', { id: product.id })}
+                />
               </View>
             )}
 
@@ -170,8 +153,12 @@ export default function Store({ route }: { route: any }) {
               <SizedBox height={10} />
 
               <View style={styles.popularGrid}>
-                {filteredPopularProducts.map((product) => (
-                  <TouchableOpacity key={product.id} style={styles.popularProductCard}>
+                {getFilteredProducts(popularProducts).map((product) => (
+                  <TouchableOpacity
+                    key={product.id}
+                    style={styles.popularProductCard}
+                    onPress={() => navigation.navigate('Product', { id: product.id })}
+                  >
                     <Image source={product.imageUrl} style={styles.popularProductImage} resizeMode="contain" />
                     <View style={styles.popularProductInfo}>
                       <Text style={styles.popularProductName} numberOfLines={2}>{product.name}</Text>

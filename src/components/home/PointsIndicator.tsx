@@ -12,7 +12,7 @@ export function PointsIndicator({ donorPoints }: PointsComponentProps) {
   const navigation = useNavigation() as any;
 
   const handleNavigateToPoints = () => {
-    navigation.navigate('PointsPage', { donorPoints });
+    navigation.navigate('PointsPage');
   };
 
   return (

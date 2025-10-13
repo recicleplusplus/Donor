@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ScrollView, View, Image } from "react-native";
 import { Text } from "react-native-paper";
 import { Material } from "../../firebase/instances/material";
@@ -23,7 +23,7 @@ export default function PointsPageContent(Props: PointsPageContentProps) {
         title="Voltar"
         rightElementText="Loja"
         rightElementIcon="store"
-        onRightElementPress={() => navigation.navigate('Store', { donorPoints })}
+        onRightElementPress={() => navigation.navigate('Store')}
       />
       <ScrollView
         style={{ flex: 1 }}

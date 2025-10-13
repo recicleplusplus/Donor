@@ -8,6 +8,7 @@ import { Collection4 } from '../screens/collection/index4';
 import { ChatScreen } from '../screens/chat';
 import { PointsPage } from '../screens/points_page';
 import Store from '../screens/store';
+import ProductPage from '../screens/product/[id]';
 
 const Stack = createNativeStackNavigator();
 
@@ -32,6 +33,11 @@ function StackCollection() {
         <Stack.Screen
           name="Store"
           component={Store}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="Product" 
+          component={ProductPage} 
           options={{ headerShown: false }}
         />
         <Stack.Screen 

@@ -4,9 +4,10 @@ import { Product } from "../../firebase/instances/products";
 
 interface HorizontalProductsProps {
   products: Product[];
+  onPressItem?: (product: Product) => void;
 }
 
-export default function HorizontalProducts({ products }: HorizontalProductsProps): JSX.Element {
+export default function HorizontalProducts({ products, onPressItem }: HorizontalProductsProps): JSX.Element {
   return (
     <ScrollView
       horizontal
@@ -14,7 +15,7 @@ export default function HorizontalProducts({ products }: HorizontalProductsProps
       contentContainerStyle={[styles.productsContainer, { paddingBottom: 10 }]}
     >
       {products.map((product) => (
-        <TouchableOpacity key={product.id} style={styles.featuredProductCard}>
+        <TouchableOpacity key={product.id} style={styles.featuredProductCard} onPress={() => onPressItem?.(product)}>
           <View style={styles.discountBadge}>
             <Text style={styles.discountText}>-25%</Text>
           </View>

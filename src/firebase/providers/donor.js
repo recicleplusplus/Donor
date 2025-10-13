@@ -180,14 +180,14 @@ async function getDonorCurrentPoints(id) {
   }
 }
 
-async function updateDonorPoints(id, pointsToAdd) {
+async function updateDonorPoints(id, pointsToAdd = 0, pointsToSubtract = 0) {
   try {
     const docRef = doc(Firestore, "donor", id);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
       const currentPoints = await getDonorCurrentPoints(id);
-      const newPoints = currentPoints + pointsToAdd;
+      const newPoints = currentPoints + pointsToAdd - pointsToSubtract;
 
       await updateDoc(docRef, { points: newPoints });
       return newPoints;
