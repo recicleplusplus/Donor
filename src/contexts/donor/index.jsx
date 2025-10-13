@@ -1,5 +1,5 @@
 import P from 'prop-types';
-import { useReducer, useEffect } from 'react';
+import { useReducer, useEffect, useContext } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 
 import { DonorContext } from "./context";
@@ -59,6 +59,18 @@ export const DonorProvider = ({children}) => {
         </DonorContext.Provider>
     );
 };
+
+export const useDonor = () => {
+  const context = useContext(DonorContext);
+
+  // verificar se o contexto existe
+  if (context === undefined) {
+    throw new Error('useDonor() precisa ser usado dentro de um DonorProvider');
+  }
+
+  return context;
+};
+
 
 DonorProvider.propTypes = {
     children: P.node.isRequired

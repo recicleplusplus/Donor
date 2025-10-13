@@ -1,49 +1,62 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import { DonationCreationProvider } from '../contexts/donation-creation';
+import { Step1_AddressAndMaterials } from '../screens/collection/Step1_AddressAndMaterials';
+import { Step2_ScheduleAndConfirm } from '../screens/collection/Step2_ScheduleAndConfirm';
+
 import { Home as HomeStack } from '../screens/home';
-import { Collection } from '../screens/collection';
-import { Collection2 } from '../screens/collection/index2';
-import { Collection3 } from '../screens/collection/index3';
-import { Collection4 } from '../screens/collection/index4';
 import { ChatScreen } from '../screens/chat';
 
-const Stack = createNativeStackNavigator();
+const MainStack = createNativeStackNavigator();
+const CreationStack = createNativeStackNavigator();
 
-function StackCollection() {
+// Criação de Doação
+function DonationCreationStack() {
   return (
-    <Stack.Navigator initialRouteName='HomeStack'>
-        <Stack.Screen 
+    <DonationCreationProvider>
+      <CreationStack.Navigator>
+        <CreationStack.Screen 
+          name="CollectionStep1" 
+          component={Step1_AddressAndMaterials} 
+          options={{ title: 'Passo 1: Endereço e Materiais' }} 
+        />
+        <CreationStack.Screen 
+          name="CollectionStep2" 
+          component={Step2_ScheduleAndConfirm} 
+          options={{ title: 'Passo 2: Agendamento' }} 
+        />
+      </CreationStack.Navigator>
+    </DonationCreationProvider>
+  );
+}
+
+// Navegador principal
+export function StackCollection() {
+  return (
+    <MainStack.Navigator initialRouteName='HomeStack'>
+        {/* Tela Principal */}
+        <MainStack.Screen 
           name="HomeStack" 
           component={HomeStack} 
           options={{ headerShown: false }}
         />
-        <Stack.Screen 
-          name="Collection" 
-          component={Collection} 
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen 
-          name="Collection2" 
-          component={Collection2} 
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen 
-          name="Collection3" 
-          component={Collection3} 
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen 
-          name="Collection4" 
-          component={Collection4} 
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen 
+        
+        {/* Tela de Chat */}
+        <MainStack.Screen 
           name="Chat" 
           component={ChatScreen} 
           options={{ headerShown: false }}
         />
-    </Stack.Navigator>
+
+        {/* Fluxo de criação de doação (modal) */}
+        <MainStack.Screen 
+          name="DonationCreation" 
+          component={DonationCreationStack} 
+          options={{ 
+            headerShown: false,
+            presentation: 'modal',
+          }} 
+        />
+    </MainStack.Navigator>
   );
 }
-
-export {StackCollection};

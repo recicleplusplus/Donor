@@ -1,12 +1,8 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useGetDonorStatistics } from "./hooks/useGetDonorStatistics";
-import { useProfileImage } from "./hooks/useProfileImage";
 import { Colors, Theme } from "../../constants/setting";
 import { View, ScrollView, Text, TouchableOpacity } from "react-native";
 import { styles } from "./style";
-import { ContainerTopClean } from "../../components/containers";
-import SizedBox from '../../components/SizedBox';
-import { ImageCircleIcon } from "../../components/images";
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StatisticsCard } from '../../components/home/StatisticsCard';
@@ -42,7 +38,7 @@ export function HomePageContent(props: HomePageContentProps) {
 					</View>
 				)}
 				<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-					<TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Collection')}>
+					<TouchableOpacity style={styles.button} onPress={() => navigation.navigate('DonationCreation')}>
 						<MaterialCommunityIcons name="recycle" size={28} color="white" />
 						<Text style={styles.text}>Cadastrar</Text>
 					</TouchableOpacity>
