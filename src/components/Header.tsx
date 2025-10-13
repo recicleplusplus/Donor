@@ -3,22 +3,22 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { SimpleIcon } from './icons';
 import { Colors, Theme } from '../constants/setting';
 import { Height } from '../constants/scales';
+import { useNavigation } from '@react-navigation/native';
 
 interface HeaderProps {
   title: string;
-  onBackPress: () => void;
   rightElementText?: string;
   rightElementIcon?: string;
   onRightElementPress?: () => void;
 }
 
 export default function Header(props: HeaderProps) {
-  const { title, onBackPress, rightElementText, rightElementIcon, onRightElementPress } = props;
-
+  const { title, rightElementText, rightElementIcon, onRightElementPress } = props;
+  const navigation = useNavigation() as any;
   return (
     <View style={styles.header}>
       {/* Left content */}
-      <TouchableOpacity onPress={onBackPress} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingTop: 30 }}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingTop: 30 }}>
         <SimpleIcon
           name="chevron-left"
           color={Colors[Theme][7]}
@@ -29,7 +29,7 @@ export default function Header(props: HeaderProps) {
 
       {/* Right content */}
       {rightElementText && rightElementIcon &&
-        <TouchableOpacity onPress={onRightElementPress} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <TouchableOpacity onPress={onRightElementPress} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 30 }}>
           <SimpleIcon name={rightElementIcon} size={24} color="#fff" />
           <Text style={styles.headerText}>{rightElementText}</Text>
         </TouchableOpacity>

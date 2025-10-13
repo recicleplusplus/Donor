@@ -34,7 +34,7 @@ export function HomePageContent(props: HomePageContentProps) {
 			<ScrollView>
 				<HomeHeader donorName={donorState.name} userImage={userImage} />
 
-				<PointsIndicator donorId={donorState.id} />
+				<PointsIndicator donorPoints={donorState.points || 0} />
 
 				{donorStatistics ? (
 					<StatisticsCard donorStatistics={donorStatistics} styles={styles} />

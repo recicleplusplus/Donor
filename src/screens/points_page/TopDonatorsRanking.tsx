@@ -18,10 +18,7 @@ export default function TopDonatorsRanking() {
   useEffect(() => {
     const fetchTopDonors = async () => {
       try {
-        console.log('Buscando os 5 doadores com mais doações...');
         const topDonorsData = await getTopDonorsByDonations();
-        console.log('Top 5 doadores com detalhes:', topDonorsData);
-
         setTopDonors(topDonorsData);
         setLoadingRanking(false);
       } catch (error) {

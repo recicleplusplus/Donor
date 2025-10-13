@@ -14,12 +14,17 @@ interface PointsPageContentProps {
 
 export default function PointsPageContent(Props: PointsPageContentProps) {
   const { materials, donorPoints } = Props;
-  const navigation = useNavigation();
+  const navigation = useNavigation() as any;
   const materialValues = Object.values(materials);
 
   return (
     <>
-      <Header title="Voltar" onBackPress={() => navigation.goBack()} />
+      <Header
+        title="Voltar"
+        rightElementText="Loja"
+        rightElementIcon="store"
+        onRightElementPress={() => navigation.navigate('Store', { donorPoints })}
+      />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: 20, paddingBottom: 20 }}

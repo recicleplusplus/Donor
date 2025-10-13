@@ -3,23 +3,17 @@ import { TouchableOpacity, View, Image, Text } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Colors, Theme } from "../../constants/setting";
 import { SimpleIcon } from "../icons";
-import { useDonorPoints } from "../../screens/home/hooks/useDonorPoints";
 
 interface PointsComponentProps {
-  donorId: string;
+  donorPoints: number;
 }
 
-export function PointsIndicator({ donorId }: PointsComponentProps) {
+export function PointsIndicator({ donorPoints }: PointsComponentProps) {
   const navigation = useNavigation() as any;
-  const { donorPoints, loading: pointsLoading, error: pointsError } = useDonorPoints(donorId);
 
   const handleNavigateToPoints = () => {
-    navigation.navigate('PointsPage');
+    navigation.navigate('PointsPage', { donorPoints });
   };
-
-  if (pointsError) {
-    return null;
-  }
 
   return (
     <View style={{
@@ -46,7 +40,7 @@ export function PointsIndicator({ donorId }: PointsComponentProps) {
           fontWeight: 'bold',
           fontSize: 14
         }}>
-          {pointsLoading ? '...' : `${donorPoints} Pts`}
+          {`${donorPoints} Pts`}
         </Text>
         <SimpleIcon
           name="chevron-right"
