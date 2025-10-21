@@ -1,10 +1,10 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useCallback } from "react";
 import { View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Snackbar } from 'react-native-paper';
 
 import { DonorContext } from "../../contexts/donor/context";
-import { useGetRecyclableDonorData } from "./hooks/useGetRecyclabeDonorData";
+import { useGetRecentDonations } from "./hooks/useGetRecentDonations";
 import { HomePageContent } from "./homePageContent";
 import { Loading } from "../../components/loading";
 import { ErrorPage } from "../../components/ErrorPage";
@@ -14,25 +14,36 @@ import { Colors, Theme } from "../../constants/setting";
 export function Home({ }) {
   const { donorState } = useContext(DonorContext);
   const { image } = useProfileImage(donorState.photoUrl);
-  const { data: recyclableDonorData, loading, error } = useGetRecyclableDonorData(donorState.id);
+  
+  const { donations, loading: donationsLoading, error: donationsError, refetch: refetchDonations } = useGetRecentDonations(donorState.id);
   
   const navigation = useNavigation();
   const route = useRoute();
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  
+  const [snackbar, setSnackbar] = useState({ visible: false, message: '' });
 
-  // Este useEffect "escuta" por mudanças nos parâmetros da rota
+  // Ele "escuta" por mudanças nos parâmetros da rota
   useEffect(() => {
-    if (route.params?.donationCreated) {
-      setSnackbarVisible(true);
-      navigation.setParams({ donationCreated: false });
+    // Se o sinal 'refresh' chegar...
+    if (route.params?.refresh) {
+      console.log('Sinal de atualização recebido, recarregando doações...');
+      refetchDonations(); // ...recarrega a lista de doações
+      
+      // Se uma mensagem foi enviada, mostra a snackbar.
+      if (route.params.snackbarMessage) {
+        setSnackbar({ visible: true, message: route.params.snackbarMessage });
+      }
+      
+      // Limpa os parâmetros para que a atualização não aconteça de novo sem necessidade.
+      navigation.setParams({ refresh: false, snackbarMessage: null });
     }
-  }, [route.params?.donationCreated, navigation]);
+  }, [route.params?.refresh, navigation, refetchDonations]); // Dependências do efeito
 
-  if (loading) {
+  if (donationsLoading && !donations.length) { // Mostra o loading apenas na primeira carga
     return <Loading />;
   }
 
-  if (error) {
+  if (donationsError) {
     return <ErrorPage />;
   }
 
@@ -40,20 +51,20 @@ export function Home({ }) {
     <View style={{ flex: 1 }}> 
       <HomePageContent 
         donorState={donorState} 
-        recyclableDonorData={recyclableDonorData} 
         userImage={image} 
+        recentDonations={donations}
       />
       <Snackbar
-        visible={snackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
+        visible={snackbar.visible}
+        onDismiss={() => setSnackbar({ visible: false, message: '' })}
         duration={10000}
         style={{ 
           backgroundColor: Colors[Theme][9],
-          marginBottom: 15 
+          marginBottom: 60 
         }}
-        theme={{ colors: { inversePrimary: '#FFFFFF', onSurface: '#ffffffff' } }} 
+        theme={{ colors: { inversePrimary: '#FFFFFF', onSurface: '#FFFFFF' } }} 
       >
-        Coleta agendada com sucesso!
+        {snackbar.message}
       </Snackbar>
     </View>
   );

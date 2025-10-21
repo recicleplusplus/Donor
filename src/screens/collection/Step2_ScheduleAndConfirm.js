@@ -52,15 +52,16 @@ export function Step2_ScheduleAndConfirm() {
     setLoading(false);
     
     if (error) {
-        console.error("Erro ao criar doação:", error);
-        setSnackbar({ visible: true, message: 'Erro ao agendar a coleta. Tente novamente.' });
+      console.error("Erro ao criar doação:", error);
+      setSnackbar({ visible: true, message: 'Erro ao agendar a coleta. Tente novamente.' });
     } else {
-        console.log("Doação criada com sucesso! ID:", data);
-        donationDispatch({ type: 'RESET' }); // Limpa o formulário
+      console.log("Doação criada com sucesso! ID:", data);
+      donationDispatch({ type: 'RESET' }); // Limpa o formulário
 
-        navigation.navigate('HomeStack', { donationCreated: true });
-
-        navigation.navigate('HomeStack'); 
+      navigation.navigate('HomeStack', { 
+      refresh: true, 
+      snackbarMessage: 'Coleta agendada com sucesso!' 
+      });
     }
   }
 
@@ -148,7 +149,7 @@ export function Step2_ScheduleAndConfirm() {
         buttonColor={Colors[Theme][9]}
         textColor={Colors[Theme][0]}
       >
-        Confirmar Doação
+        Confirmar agendamento de coleta
       </Button>
       
       <Snackbar visible={snackbar.visible} onDismiss={() => setSnackbar({ ...snackbar, visible: false })}>

@@ -6,6 +6,7 @@ import { Step2_ScheduleAndConfirm } from '../screens/collection/Step2_ScheduleAn
 
 import { Home as HomeStack } from '../screens/home';
 import { ChatScreen } from '../screens/chat';
+import { DonationDetailsScreen } from '../screens/donation-details';
 
 const MainStack = createNativeStackNavigator();
 const CreationStack = createNativeStackNavigator();
@@ -56,6 +57,13 @@ export function StackCollection() {
             headerShown: false,
             presentation: 'modal',
           }} 
+        />
+
+        {/* Detalhes da coleta (ao clicar nos cards)*/}
+        <MainStack.Screen 
+          name="DonationDetails" 
+          component={DonationDetailsScreen} 
+          options={{ title: 'Detalhes da Coleta' }}
         />
     </MainStack.Navigator>
   );

@@ -1,74 +1,59 @@
 import { useState, useEffect } from 'react';
-import { updateDoc, doc } from 'firebase/firestore';
-import { Firestore } from '../../../firebase/config/connection';
-import {
-  RecyclableDonorData,
-} from '../../../types/donor_types';
-import { Statistic } from '../../../firebase/instances/statistic';
+import { supabase } from '../../../lib/supabaseClient';
 
-interface Output {
-  donorStatistics: Statistic | null;
-  loading?: boolean;
-  error?: Error | null;
+// --- DEFINIÇÃO DOS NOVOS TIPOS DE DADOS ---
+// Este é o formato do array que virá dentro do JSON
+interface MaterialTotal {
+  name: string;
+  totalKg: number;
 }
 
-export function useGetDonorStatistics(
-  recyclableDonorData: RecyclableDonorData[] | null,
-  donorId: string
-): Output {
-  const [donorStatistics, setDonorStatistics] = useState<Statistic | null>(null);
+// Este é o formato do objeto JSON completo que a função retorna
+interface DynamicStatistic {
+  collectionsCompleted: number;
+  materialTotals: MaterialTotal[];
+}
 
-  const getDonorStatistics = (data: RecyclableDonorData[]): Statistic | null => {
-    if (!data || data.length === 0) {
-      return null;
-    }
+interface Output {
+  statistics: DynamicStatistic | null;
+  loading: boolean;
+  error: Error | null;
+}
+// ------------------------------------------
 
-    const typesWeight: Record<string, number> = {};
-    data.forEach(item => {
-      const typesArray = item.types.split(',').map(type => type.trim());
-      const weightMatch = item.weight.match(/\d+/);
-      const weight = weightMatch ? parseInt(weightMatch[0], 10) : 0;
-
-      typesArray.forEach(type => {
-        if (typesWeight[type]) {
-          typesWeight[type] += weight;
-        } else {
-          typesWeight[type] = weight;
-        }
-      });
-    });
-
-    return {
-      collectionsCompleted: data.length,
-      eletronicKg: typesWeight["Eletrônico"] || 0,
-      glassKg: typesWeight["Vidro"] || 0,
-      metalKg: typesWeight["Metal"] || 0,
-      oilKg: typesWeight["Óleo"] || 0,
-      paperKg: typesWeight["Papel"] || 0,
-      plasticKg: typesWeight["Plástico"] || 0
-    };
-  };
-
-  const setDonorStatistic = async (userId: string, statistic: Statistic): Promise<void> => {
-    try {
-      const donorDoc = doc(Firestore, "donor", userId);
-      await updateDoc(donorDoc, { statistic });
-    } catch (error) {
-      console.error("Erro ao acessar o documento statistic:", error);
-    }
-  };
+export function useGetDonorStatistics(donorId: string): Output {
+  const [statistics, setStatistics] = useState<DynamicStatistic | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (recyclableDonorData && recyclableDonorData.length > 0) {
-      const statistics = getDonorStatistics(recyclableDonorData);
-      setDonorStatistics(statistics);
-      if (donorId && statistics) {
-        setDonorStatistic(donorId, statistics);
-      }
-    } else {
-      setDonorStatistics(null);
+    if (!donorId) {
+      setLoading(false);
+      return;
     }
-  }, [recyclableDonorData, donorId]);
 
-  return { donorStatistics };
+    async function fetchStatistics() {
+      setLoading(true);
+      setError(null);
+      
+      // Chama a MESMA função 'get_donor_statistics', que agora retorna JSON
+      const { data, error: rpcError } = await supabase.rpc('get_donor_statistics', {
+        p_donor_id: donorId
+      });
+
+      if (rpcError) {
+        console.error("Erro ao buscar estatísticas dinâmicas:", rpcError);
+        setError(rpcError);
+        setStatistics(null);
+      } else {
+        // 'data' agora NÃO é um array, é o próprio objeto JSON que pedimos
+        setStatistics(data);
+      }
+      setLoading(false);
+    }
+
+    fetchStatistics();
+  }, [donorId]);
+
+  return { statistics, loading, error };
 }
