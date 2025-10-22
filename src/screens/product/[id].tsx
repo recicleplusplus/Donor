@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useContext } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Snackbar } from 'react-native-paper';
 import { updateDonorPoints } from '../../firebase/providers/donor';
@@ -9,6 +10,7 @@ import { Product } from '../../firebase/instances/products';
 
 
 export default function ProductPage() {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute();
   const { product } = (route.params || {}) as { product: Product };
@@ -55,9 +57,9 @@ export default function ProductPage() {
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <View style={styles.heroContainer}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}>
+        <View style={[styles.heroContainer, { paddingTop: insets.top }]}>
           {product.originalPrice > product.currentPrice && (
             <View style={styles.discountChip}>
               <Text style={styles.discountText}>
@@ -65,7 +67,7 @@ export default function ProductPage() {
               </Text>
             </View>
           )}
-          <Image source={product.imageUrl as any} style={styles.heroImage} resizeMode="contain" />
+          <Image source={{ uri: product.imgUrl }} style={styles.heroImage} resizeMode="cover" />
         </View>
 
         <View style={styles.content}>
@@ -93,7 +95,7 @@ export default function ProductPage() {
         </View>
       </ScrollView>
 
-      <View style={styles.ctaBar}>
+      <View style={[styles.ctaBar, { paddingBottom: 16 + insets.bottom }]}>
         <View style={styles.balanceRow}>
           <Text style={styles.balanceText}>Saldo: <Text style={styles.balanceStrong}>{balance} 🍃</Text></Text>
         </View>
@@ -120,7 +122,7 @@ export default function ProductPage() {
           navigation.goBack();
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -130,7 +132,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   heroContainer: {
-    margin: 16,
     backgroundColor: '#fff',
     borderRadius: 12,
     overflow: 'hidden',

@@ -6,9 +6,7 @@ import { Product } from '../../firebase/instances/products';
 import HorizontalProducts from '../../components/store/HorizontalProducts';
 import SizedBox from '../../components/SizedBox';
 import StoreHeader from './storeHeader';
-import { getDonorCurrentPoints } from '../../firebase/providers/donor';
 import { DonorContext } from '../../contexts/donor/context';
-import * as Types from '../../contexts/donor/types';
 import { getAllProducts, getProductsWithDiscount, getProductsWithoutDiscount } from '../../firebase/providers/marketplace';
 
 const { width: screenWidth } = Dimensions.get("window");
@@ -101,7 +99,7 @@ export default function Store({ navigation }: { route: any, navigation: any }) {
                     style={styles.popularProductCard}
                     onPress={() => navigateToProductPage(product.intId)}
                   >
-                    <Image source={product.imageUrl} style={styles.popularProductImage} resizeMode="contain" />
+                    <Image source={{ uri: product.imgUrl }} style={styles.popularProductImage} resizeMode="contain" />
                     <View style={styles.popularProductInfo}>
                       <Text style={styles.popularProductName} numberOfLines={2}>{product.name}</Text>
                       <Text style={styles.popularProductPrice}>{product.currentPrice} 🍃</Text>
@@ -173,7 +171,7 @@ export default function Store({ navigation }: { route: any, navigation: any }) {
                     style={styles.popularProductCard}
                     onPress={() => navigateToProductPage(product.intId)}
                   >
-                    <Image source={product.imageUrl} style={styles.popularProductImage} resizeMode="contain" />
+                    <Image source={{ uri: product.imgUrl }} style={styles.popularProductImage} resizeMode="contain" />
                     <View style={styles.popularProductInfo}>
                       <Text style={styles.popularProductName} numberOfLines={2}>{product.name}</Text>
                       <Text style={styles.popularProductPrice}>{product.currentPrice} 🍃</Text>

@@ -19,7 +19,7 @@ export default function HorizontalProducts({ products, onPressItem }: Horizontal
           <View style={styles.discountBadge}>
             <Text style={styles.discountText}>-25%</Text>
           </View>
-          <Image source={product.imageUrl} style={styles.productImage} resizeMode="contain" />
+          <Image source={{ uri: product.imgUrl }} style={styles.productImage} resizeMode="cover" />
           <View style={styles.productInfo}>
             <Text style={styles.productName} numberOfLines={2}>{product.name}</Text>
             <View style={styles.priceContainer}>
