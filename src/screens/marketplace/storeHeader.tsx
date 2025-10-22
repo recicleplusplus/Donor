@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
-import { Dimensions, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { Dimensions, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SimpleIcon } from '../../components/icons';
 import { Colors, Theme } from '../../constants/setting';
 
@@ -52,17 +52,9 @@ export default function StoreHeader({
               setSearchText('');
             }
           }}
-          style={{ marginRight: 15 }}
+          style={{ marginRight: 5 }}
         >
           <Ionicons name={isSearchVisible ? "close" : "search"} size={24} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => console.log('cart')}>
-          <View style={styles.cartBadge}>
-            <Ionicons name="bag" size={24} color="#fff" />
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>3</Text>
-            </View>
-          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -76,7 +68,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     paddingBottom: 15,
   },
   headerTitle: {
@@ -88,25 +80,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingTop: 40,
-  },
-  cartBadge: {
-    position: 'relative',
-  },
-  badge: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    backgroundColor: '#FF5722',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
   },
   searchInput: {
     height: 40,
