@@ -15,7 +15,7 @@ export default function HorizontalProducts({ products, onPressItem }: Horizontal
       contentContainerStyle={[styles.productsContainer, { paddingBottom: 10 }]}
     >
       {products.map((product) => (
-        <TouchableOpacity key={product.id} style={styles.featuredProductCard} onPress={() => onPressItem?.(product)}>
+        <TouchableOpacity key={product.intId} style={styles.featuredProductCard} onPress={() => onPressItem?.(product)}>
           <View style={styles.discountBadge}>
             <Text style={styles.discountText}>-25%</Text>
           </View>
@@ -24,7 +24,7 @@ export default function HorizontalProducts({ products, onPressItem }: Horizontal
             <Text style={styles.productName} numberOfLines={2}>{product.name}</Text>
             <View style={styles.priceContainer}>
               <Text style={styles.originalPrice}>{product.originalPrice} 🍃</Text>
-              <Text style={styles.productPrice}>{product.price} 🍃</Text>
+              <Text style={styles.productPrice}>{product.currentPrice} 🍃</Text>
             </View>
           </View>
         </TouchableOpacity>

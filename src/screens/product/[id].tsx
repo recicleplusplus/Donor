@@ -1,22 +1,20 @@
 import React, { useMemo, useState, useContext } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { getProductById } from '../../firebase/instances/products';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Snackbar } from 'react-native-paper';
 import { updateDonorPoints } from '../../firebase/providers/donor';
 import { DonorContext } from '../../contexts/donor/context';
 import * as Types from '../../contexts/donor/types';
+import { Product } from '../../firebase/instances/products';
 
 
 export default function ProductPage() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { id } = (route.params || {}) as { id: number | string };
+  const { product } = (route.params || {}) as { product: Product };
   const donorContext = useContext(DonorContext as any) as any;
   const donorId = donorContext?.donorState?.id;
   const balance = donorContext?.donorState?.points ?? 0;
-  const productId = useMemo(() => Number(id), [id]);
-  const product = getProductById(productId);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
@@ -35,7 +33,7 @@ export default function ProductPage() {
 
   const handleRedeem = async () => {
     if (!product) return;
-    if (!canSpend(product.price)) {
+    if (!canSpend(product.currentPrice)) {
       setSnackbarMessage('Saldo insuficiente');
       setSnackbarVisible(true);
       return;
@@ -45,7 +43,7 @@ export default function ProductPage() {
       setSnackbarVisible(true);
       return;
     }
-    const newPoints = await updateDonorPoints(donorId, 0, product.price); // Subtrai os pontos
+    const newPoints = await updateDonorPoints(donorId, 0, product.currentPrice); // Subtrai os pontos
     if (typeof newPoints === 'number') {
       donorContext?.donorDispach?.({ type: Types.SETUPDATE, payload: { points: newPoints } });
       setSnackbarMessage('Resgate realizado com sucesso!');
@@ -60,10 +58,10 @@ export default function ProductPage() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <View style={styles.heroContainer}>
-          {product.originalPrice > product.price && (
+          {product.originalPrice > product.currentPrice && (
             <View style={styles.discountChip}>
               <Text style={styles.discountText}>
-                -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                -{Math.round(((product.originalPrice - product.currentPrice) / product.originalPrice) * 100)}%
               </Text>
             </View>
           )}
@@ -78,7 +76,7 @@ export default function ProductPage() {
           {product.originalPrice ? (
             <Text style={styles.originalPrice}>{product.originalPrice} 🍃</Text>
           ) : null}
-          <Text style={styles.price}>{product.price} 🍃</Text>
+          <Text style={styles.price}>{product.currentPrice} 🍃</Text>
 
           {product.description ? (
             <Text style={styles.description}>{product.description}</Text>
@@ -100,13 +98,13 @@ export default function ProductPage() {
           <Text style={styles.balanceText}>Saldo: <Text style={styles.balanceStrong}>{balance} 🍃</Text></Text>
         </View>
         <TouchableOpacity
-          style={[styles.ctaButton, !canSpend(product.price) && styles.ctaButtonDisabled]}
+          style={[styles.ctaButton, !canSpend(product.currentPrice) && styles.ctaButtonDisabled]}
           onPress={handleRedeem}
-          disabled={!canSpend(product.price)}
+          disabled={!canSpend(product.currentPrice)}
           accessibilityRole="button"
         >
           <Text style={styles.ctaText}>
-            {canSpend(product.price) ? `Resgatar por ${product.price} 🍃` : 'Saldo insuficiente'}
+            {canSpend(product.currentPrice) ? `Resgatar por ${product.currentPrice} 🍃` : 'Saldo insuficiente'}
           </Text>
         </TouchableOpacity>
       </View>

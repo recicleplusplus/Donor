@@ -1,16 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BalanceCard from '../../components/store/BalanceCard';
 import { Product } from '../../firebase/instances/products';
 import HorizontalProducts from '../../components/store/HorizontalProducts';
 import SizedBox from '../../components/SizedBox';
 import StoreHeader from './storeHeader';
-import { getProductsWithDiscount, getProductsWithoutDiscount } from '../../firebase/instances/products';
-import { useFocusEffect } from '@react-navigation/native';
 import { getDonorCurrentPoints } from '../../firebase/providers/donor';
 import { DonorContext } from '../../contexts/donor/context';
 import * as Types from '../../contexts/donor/types';
+import { getAllProducts, getProductsWithDiscount, getProductsWithoutDiscount } from '../../firebase/providers/marketplace';
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -24,18 +23,26 @@ const categories = [
   { name: 'Beleza', icon: 'flower', color: '#E91E63' },
 ];
 
-export default function Store({ route, navigation }: { route: any, navigation: any }) {
+export default function Store({ navigation }: { route: any, navigation: any }) {
   const donorContext = useContext(DonorContext as any) as any;
   const donorPoints = donorContext?.donorState?.points || 0;
 
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchText, setSearchText] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const promotionalProducts = getProductsWithDiscount();
-  const popularProducts = getProductsWithoutDiscount();
+  const [products, setProducts] = useState<Product[]>([]);
+  const promotionalProducts = getProductsWithDiscount(products);
+  const popularProducts = getProductsWithoutDiscount(products);
   const featuredProducts = promotionalProducts.slice(0, 5); // Top 5 ofertas especiais
 
-  // Função para filtrar produtos por categoria
+  useEffect(() => {
+    async function fetchProducts() {
+      const allProducts = await getAllProducts();
+      setProducts(Object.values(allProducts));
+    }
+    fetchProducts();
+  }, []);
+
   const getFilteredProducts = (products: Product[]) => {
     let filtered = products;
 
@@ -53,6 +60,13 @@ export default function Store({ route, navigation }: { route: any, navigation: a
 
     return filtered;
   };
+
+  const navigateToProductPage = (intId: number) => {
+    const product = Object.values(products).find((p) => p.intId === intId);
+    if (product) {
+      navigation.navigate('Product', { product });
+    }
+  }
 
   return (
     <>
@@ -83,14 +97,14 @@ export default function Store({ route, navigation }: { route: any, navigation: a
               <View style={styles.popularGrid}>
                 {getFilteredProducts([...featuredProducts, ...popularProducts]).map((product) => (
                   <TouchableOpacity
-                    key={product.id}
+                    key={product.intId}
                     style={styles.popularProductCard}
-                    onPress={() => navigation.navigate('Product', { id: product.id })}
+                    onPress={() => navigateToProductPage(product.intId)}
                   >
                     <Image source={product.imageUrl} style={styles.popularProductImage} resizeMode="contain" />
                     <View style={styles.popularProductInfo}>
                       <Text style={styles.popularProductName} numberOfLines={2}>{product.name}</Text>
-                      <Text style={styles.popularProductPrice}>{product.price} 🍃</Text>
+                      <Text style={styles.popularProductPrice}>{product.currentPrice} 🍃</Text>
                     </View>
                   </TouchableOpacity>
                 ))}
@@ -143,7 +157,7 @@ export default function Store({ route, navigation }: { route: any, navigation: a
                 <SizedBox height={10} />
                 <HorizontalProducts
                   products={featuredProducts}
-                  onPressItem={(product) => navigation.navigate('Product', { id: product.id })}
+                  onPressItem={(product) => navigateToProductPage(product.intId)}
                 />
               </View>
             )}
@@ -155,14 +169,14 @@ export default function Store({ route, navigation }: { route: any, navigation: a
               <View style={styles.popularGrid}>
                 {getFilteredProducts(popularProducts).map((product) => (
                   <TouchableOpacity
-                    key={product.id}
+                    key={product.intId}
                     style={styles.popularProductCard}
-                    onPress={() => navigation.navigate('Product', { id: product.id })}
+                    onPress={() => navigateToProductPage(product.intId)}
                   >
                     <Image source={product.imageUrl} style={styles.popularProductImage} resizeMode="contain" />
                     <View style={styles.popularProductInfo}>
                       <Text style={styles.popularProductName} numberOfLines={2}>{product.name}</Text>
-                      <Text style={styles.popularProductPrice}>{product.price} 🍃</Text>
+                      <Text style={styles.popularProductPrice}>{product.currentPrice} 🍃</Text>
                     </View>
                   </TouchableOpacity>
                 ))}

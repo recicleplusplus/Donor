@@ -7,7 +7,7 @@ import { Collection3 } from '../screens/collection/index3';
 import { Collection4 } from '../screens/collection/index4';
 import { ChatScreen } from '../screens/chat';
 import { PointsPage } from '../screens/points_page';
-import Store from '../screens/store';
+import Store from '../screens/marketplace';
 import ProductPage from '../screens/product/[id]';
 
 const Stack = createNativeStackNavigator();
