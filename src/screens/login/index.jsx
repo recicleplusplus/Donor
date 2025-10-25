@@ -82,7 +82,7 @@ export function Login() {
                     <ButtonDefault
                         title={"Entrar"}
                         fun={login}
-                        color={theme.colors.primary}
+                        color={theme.colors.secondaryButtonColor}
                         textColor={theme.colors.buttonTextColor}
                         textSize={Size20}
                         width={0.7}

@@ -60,7 +60,7 @@ export function Home({ }) {
         duration={10000}
         style={{ 
           backgroundColor: Colors[Theme][9],
-          marginBottom: 60 
+          marginBottom: 20 
         }}
         theme={{ colors: { inversePrimary: '#FFFFFF', onSurface: '#FFFFFF' } }} 
       >

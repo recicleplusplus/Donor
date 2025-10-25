@@ -7,6 +7,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from 'react';
 import { HomeHeader } from '../../components/home/HomeHeader';
 import { DonationCard } from '../../components/home/DonationCard';
+import { StatisticItem } from '../../components/home/StatisticItem';
 
 export function HomePageContent({ donorState, userImage, recentDonations }) {
     const navigation = useNavigation();
@@ -16,27 +17,36 @@ export function HomePageContent({ donorState, userImage, recentDonations }) {
         if (statsLoading) {
             return <ActivityIndicator size="large" color={Colors[Theme][2]} style={{ marginVertical: 20 }} />;
         }
+
         if (statsError || !statistics || statistics.collectionsCompleted === 0) {
             return (
                 <View style={styles.centeredMessage}>
                     <Text style={styles.emptyText}>
-                        Nenhuma doação completada ainda. Cadastre sua primeira coleta ou aguarde até que sua coleta cadastrada seja coletada!
+                        Nenhuma doação completada ainda. Cadastre sua primeira coleta!
                     </Text>
                 </View>
             );
         }
+
+        // <<< MUDANÇA: Usamos <StatisticItem /> aqui
         return (
             <View style={styles.statisticsContainer}>
-                <View style={styles.statisticItem}>
-                    <Text style={styles.statisticValue}>{statistics.collectionsCompleted}</Text>
-                    <Text style={styles.statisticLabel}>Coletas Completadas</Text>
-                </View>
+                {/* Item Fixo para Coletas Completadas */}
+                <StatisticItem 
+                  label="Coletas Completadas" 
+                  value={statistics.collectionsCompleted.toString()} 
+                />
+                
+                {/* Itens Dinâmicos para os Materiais */}
                 {statistics.materialTotals.map((material) => (
+                    // Renderiza apenas se o total for maior que zero
                     material.totalKg > 0 && (
-                        <View style={styles.statisticItem} key={material.name}>
-                            <Text style={styles.statisticValue}>{material.totalKg.toFixed(2)} kg</Text>
-                            <Text style={styles.statisticLabel}>{material.name}</Text>
-                        </View>
+                        <StatisticItem 
+                          key={material.name} 
+                          label={material.name} 
+                          // Formata o valor para exibir "kg" e limita casas decimais
+                          value={`${material.totalKg.toFixed(1)} kg`} 
+                        />
                     )
                 ))}
             </View>
@@ -79,12 +89,10 @@ export function HomePageContent({ donorState, userImage, recentDonations }) {
     );
 }
 
-// --- ESTILOS CORRIGIDOS ---
+
 const styles = StyleSheet.create({
   sectionHeader: {
     paddingHorizontal: 20,
-    // AQUI ESTÁ A CORREÇÃO PRINCIPAL:
-    // Aumentamos a margem superior para criar mais espaço abaixo do header.
     marginTop: 50, 
     marginBottom: 10,
   },
@@ -107,7 +115,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 30,
-    marginBottom: 20, // Aumentado o espaço abaixo do botão
+    marginBottom:10, // Aumentado o espaço abaixo do botão
   },
   button: {
     flexDirection: 'row',
@@ -125,12 +133,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 10,
   },
-  statisticsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    paddingHorizontal: 10,
-  },
   statisticItem: {
     alignItems: 'center',
     margin: 10,
@@ -145,5 +147,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors[Theme][5],
     marginTop: 2,
+  },
+  statisticsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    marginTop: 10,
   },
 });
