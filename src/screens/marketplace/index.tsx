@@ -32,7 +32,7 @@ export default function Store({ navigation }: { route: any, navigation: any }) {
   const [products, setProducts] = useState<Product[]>([]);
   const promotionalProducts = getProductsWithDiscount(products);
   const popularProducts = getProductsWithoutDiscount(products);
-  const featuredProducts = promotionalProducts.slice(0, 5); // Top 5 ofertas especiais
+  const featuredProducts = promotionalProducts;
 
   useEffect(() => {
     async function fetchProducts() {
@@ -222,9 +222,10 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
+    gap: 10,
   },
   popularProductCard: {
-    width: (screenWidth - 50) / 2,
+    width: 160,
     backgroundColor: '#fff',
     borderRadius: 12,
     marginBottom: 15,

@@ -10,7 +10,6 @@ interface ProductCardProps {
 export default function ProductCard({
   product, onPress
 }: ProductCardProps) {
-  console.log('Rendering ProductCard for product:', product.intId);
   return (
     <TouchableOpacity
       style={styles.card}
@@ -20,7 +19,7 @@ export default function ProductCard({
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
         <Text style={styles.price}>{product.currentPrice} 🍃</Text>
-        {product.originalPrice && (
+        {Number(product.originalPrice) > Number(product.currentPrice) && (
           <Text style={[styles.price, { textDecorationLine: 'line-through', color: '#999', fontSize: 12 }]}>
             {product.originalPrice} 🍃
           </Text>
@@ -32,6 +31,7 @@ export default function ProductCard({
 
 const styles = StyleSheet.create({
   card: {
+    width: 150,
     backgroundColor: '#fff',
     borderRadius: 12,
     marginBottom: 15,
@@ -44,22 +44,24 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 100,
+    height: 120,
     backgroundColor: '#f9f9f9',
   },
   info: {
     padding: 12,
+    minHeight: 90,
   },
   name: {
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 6,
+    marginBottom: 4,
+    height: 36,
   },
   price: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#4CAF50',
-    marginTop: 4,
+    marginTop: 2,
   },
 });
