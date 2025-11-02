@@ -1,5 +1,6 @@
 import React from "react";
-import { View, ScrollView, TouchableOpacity, Text, StyleSheet, Image } from "react-native";
+import { View, ScrollView, Text, StyleSheet } from "react-native";
+import ProductCard from './ProductCard';
 import { Product } from "../../firebase/instances/products";
 
 interface HorizontalProductsProps {
@@ -15,19 +16,17 @@ export default function HorizontalProducts({ products, onPressItem }: Horizontal
       contentContainerStyle={[styles.productsContainer, { paddingBottom: 10 }]}
     >
       {products.map((product) => (
-        <TouchableOpacity key={product.intId} style={styles.featuredProductCard} onPress={() => onPressItem?.(product)}>
+        <View key={product.intId} style={{ position: 'relative', marginRight: 15 }}>
           <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>-25%</Text>
+            <Text style={styles.discountText}>
+              -{Math.round(((product.originalPrice - product.currentPrice) / product.originalPrice) * 100)}%
+            </Text>
           </View>
-          <Image source={{ uri: product.imgUrl }} style={styles.productImage} resizeMode="cover" />
-          <View style={styles.productInfo}>
-            <Text style={styles.productName} numberOfLines={2}>{product.name}</Text>
-            <View style={styles.priceContainer}>
-              <Text style={styles.originalPrice}>{product.originalPrice} 🍃</Text>
-              <Text style={styles.productPrice}>{product.currentPrice} 🍃</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
+          <ProductCard
+            product={product}
+            onPress={() => onPressItem?.(product)}
+          />
+        </View>
       ))}
     </ScrollView>
   );
@@ -88,14 +87,12 @@ const styles = StyleSheet.create({
     width: 160,
     backgroundColor: '#fff',
     borderRadius: 12,
-    marginRight: 15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
     overflow: 'hidden',
-    position: 'relative',
   },
   discountBadge: {
     position: 'absolute',

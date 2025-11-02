@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useContext, useEffect, useState } from 'react';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ProductCard from '../../components/store/ProductCard';
 import BalanceCard from '../../components/store/BalanceCard';
 import { Product } from '../../firebase/instances/products';
 import HorizontalProducts from '../../components/store/HorizontalProducts';
@@ -94,17 +95,11 @@ export default function Store({ navigation }: { route: any, navigation: any }) {
             {getFilteredProducts([...featuredProducts, ...popularProducts]).length > 0 ? (
               <View style={styles.popularGrid}>
                 {getFilteredProducts([...featuredProducts, ...popularProducts]).map((product) => (
-                  <TouchableOpacity
+                  <ProductCard
                     key={product.intId}
-                    style={styles.popularProductCard}
-                    onPress={() => navigateToProductPage(product.intId)}
-                  >
-                    <Image source={{ uri: product.imgUrl }} style={styles.popularProductImage} resizeMode="contain" />
-                    <View style={styles.popularProductInfo}>
-                      <Text style={styles.popularProductName} numberOfLines={2}>{product.name}</Text>
-                      <Text style={styles.popularProductPrice}>{product.currentPrice} 🍃</Text>
-                    </View>
-                  </TouchableOpacity>
+                    product={product}
+                    onPress={navigateToProductPage}
+                  />
                 ))}
               </View>
             ) : (
@@ -166,17 +161,11 @@ export default function Store({ navigation }: { route: any, navigation: any }) {
 
               <View style={styles.popularGrid}>
                 {getFilteredProducts(popularProducts).map((product) => (
-                  <TouchableOpacity
+                  <ProductCard
                     key={product.intId}
-                    style={styles.popularProductCard}
-                    onPress={() => navigateToProductPage(product.intId)}
-                  >
-                    <Image source={{ uri: product.imgUrl }} style={styles.popularProductImage} resizeMode="contain" />
-                    <View style={styles.popularProductInfo}>
-                      <Text style={styles.popularProductName} numberOfLines={2}>{product.name}</Text>
-                      <Text style={styles.popularProductPrice}>{product.currentPrice} 🍃</Text>
-                    </View>
-                  </TouchableOpacity>
+                    product={product}
+                    onPress={navigateToProductPage}
+                  />
                 ))}
               </View>
             </View>

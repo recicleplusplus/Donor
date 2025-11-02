@@ -112,7 +112,23 @@ export function Collection4({route}) {
         <Text style={styles.labelText}>Coletas: dia {dia} e hora {hora}</Text>
         <Text style={styles.labelText}>Observação: {observacao}</Text>
         <SizedBox vertical={30} />
-        <TouchableOpacity style={styles.button2} onPress={() => addNewDocument(materialsTypesValues, caixas, dia, hora, endereco, observacao, peso, sacolas, user, coletor)}>
+        <TouchableOpacity
+          style={styles.button2}
+          onPress={() =>
+            addNewDocument(
+              materialsTypesValues,
+              caixas,
+              dia,
+              hora,
+              endereco,
+              observacao,
+              peso,
+              sacolas,
+              user,
+              coletor
+            )
+          }
+        >
           <Text style={styles.buttonText}>Cadastrar</Text>
         </TouchableOpacity>
         <SizedBox vertical={30} />

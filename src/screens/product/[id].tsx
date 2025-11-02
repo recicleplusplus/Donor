@@ -7,6 +7,7 @@ import { updateDonorPoints } from '../../firebase/providers/donor';
 import { DonorContext } from '../../contexts/donor/context';
 import * as Types from '../../contexts/donor/types';
 import { Product } from '../../firebase/instances/products';
+import { decrementProductStock } from '../../firebase/providers/marketplace';
 
 
 export default function ProductPage() {
@@ -42,6 +43,13 @@ export default function ProductPage() {
     }
     if (!donorId) {
       setSnackbarMessage('Não foi possível identificar o usuário.');
+      setSnackbarVisible(true);
+      return;
+    }
+    // Decrementa o estoque do produto
+    const stockOk = await decrementProductStock(product.intId);
+    if (!stockOk) {
+      setSnackbarMessage('Produto esgotado ou erro ao atualizar estoque.');
       setSnackbarVisible(true);
       return;
     }
@@ -86,13 +94,6 @@ export default function ProductPage() {
         </View>
 
         <View style={styles.sectionDivider} />
-
-        <View style={styles.sectionBox}>
-          <Text style={styles.sectionTitle}>Sustentabilidade</Text>
-          <Text style={styles.sectionBody}>
-            Produzido com materiais reciclados e cadeia de suprimentos com menor emissão de carbono.
-          </Text>
-        </View>
       </ScrollView>
 
       <View style={[styles.ctaBar, { paddingBottom: 16 + insets.bottom }]}>
