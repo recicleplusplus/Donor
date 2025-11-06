@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { Loading } from "../../components/loading";
 import { Error } from "../../components/error";
 import { UPDATEADDRESS, UPDATE } from "../../contexts/donor/types";
+import { Snackbar } from "react-native-paper";
 
 const REQUIRED_FIELD_ERROR = "Campo Obrigatório";
 const INVALID_CEP_ERROR = "CEP inválido";
@@ -91,6 +92,7 @@ export const RegisterAddress = ({ data, dispach, closeFunc, idx = -1, onSaveCall
 
 		if (!validateForm()) {
 			setLoading(false);
+			onSaveCallback(true, "Falha na validação. Verifique os dados do endereço.");
 			return;
 		}
 
@@ -109,6 +111,7 @@ export const RegisterAddress = ({ data, dispach, closeFunc, idx = -1, onSaveCall
 					content: GEOCODING_ERROR_MESSAGE
 				});
 				setLoading(false);
+				onSaveCallback(true, GEOCODING_ERROR_MESSAGE);
 				return;
 			}
 
@@ -139,24 +142,21 @@ export const RegisterAddress = ({ data, dispach, closeFunc, idx = -1, onSaveCall
 				dispatch: dispach,
 				cb: updateCB
 			});
-
-			closeFunc();
 		} catch (err) {
 			console.error("Error in handleConfirm:", err);
 			setError({
 				title: "Erro",
 				content: "Ocorreu um erro ao processar o endereço."
 			});
-		} finally {
 			setLoading(false);
+			onSaveCallback(true, "Ocorreu um erro ao processar o endereço.");
 		}
 	};
 
 	const updateCB = (status, err) => {
-		if (status && err) {
-			setError(err);
-		}
 		setLoading(false);
+		onSaveCallback(status, err);
+		closeFunc();
 	};
 
 	const fetchCepInfo = async () => {
@@ -233,8 +233,9 @@ export const RegisterAddress = ({ data, dispach, closeFunc, idx = -1, onSaveCall
 	return (
 		<View style={styles.overlay}>
 			{loading && <Loading />}
-			{error && <Error error={error} closeFunc={() => setError(false)} />}
-
+			<Snackbar visible={true} onDismiss={() => setError(false)} duration={5000} style={{ backgroundColor: Colors[Theme][9] }}>
+				{error?.content}
+			</Snackbar>
 			<TouchableOpacity
 				style={[styles.overlay, styles.backdrop]}
 				onPress={closeFunc}
