@@ -26,9 +26,6 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
     const [neighborhood, setNeighborhood]   = useState("");
     const [complement, setComplement]       = useState("");
 
-    let latitud = '';
-    let longitud = '';
-
     const [head, setHead]                   = useState("Cadastro de Endereço")
     const [error, setError]                 = useState(false);
     const [loading, setloading]             = useState(false);
@@ -54,7 +51,7 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
         }
     },[]);
 
-    async function validation(){
+    function validation(){
         let res = true;
         const phase = "Campo Obrigatório"
 
@@ -65,43 +62,44 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
         if(city   == ''){setCityErr(phase); res = false;}
         if(cepValidation(cep)) {setCepErr("Cep inválido"); res = false;}
 
-        res = res && await getGeoLocation();
         return res;
     }
 
     // Botão confirmar foi pressionado
     async function confimPressed(){
         setloading(true);
-        if(await validation()){
+        if(validation()){
             let address = data.address;
 
-            const newAddress = {
-                'title' : title.trim(),
-                'cep' : cep.trim(),
-                'num' : num.trim(),
-                'street' : street.trim(),
-                'state' : state.trim(), 
-                'city' : city.trim(),
-                'neighborhood': neighborhood.trim(),
-                'complement' : complement.trim(),
-                'latitude' : latitud.trim(),
-                'longitude' : longitud.trim()
-            }
+			const geoData = await getGeoLocation({ street, number: num, city, state, cep });
+			if (geoData) {
+				const newAddress = {
+					'title' : title.trim(),
+					'cep' : cep.trim(),
+					'num' : num.trim(),
+					'street' : street.trim(),
+					'state' : state.trim(), 
+					'city' : city.trim(),
+					'neighborhood': neighborhood.trim(),
+					'complement' : complement.trim(),
+					'latitude' : geoData.latitude.trim(),
+					'longitude' : geoData.longitude.trim()
+				}
 
-            if(idx >= 0){
-                address[idx] = newAddress
-            }else{
-                address.push(newAddress);
-            }
+				if(idx >= 0){
+					address[idx] = newAddress
+				}else{
+					address.push(newAddress);
+				}
 
-            // dispach({type: UPDATEADDRESS, payload: address})
-
-            dispach({type: UPDATE, data: {...data, 'address':address}, dispatch: dispach, cb:updateCB});
-        } else {
-            // Falha na validação
-            onSaveCallback(true, "Falha na validação. Verifique os dados do endereço.");
-            closeFunc();
-            setloading(false);
+				dispach({type: UPDATEADDRESS, payload: address})
+				dispach({type: UPDATE, data: {...data, 'address':address}, dispatch: dispach, cb:updateCB});
+				closeFunc();
+			} else {
+				setError("Não foi possível validar o endereço informado.");
+				onSaveCallback(true, "Falha na validação. Verifique os dados do endereço.");
+        		setloading(false);
+			}
         }
     }
     function updateCB(status, err){
@@ -121,54 +119,60 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1, onSaveCallb
                     if(!data.erro){
                         setNeighborhood(data.bairro);
                         setCity(data.localidade);
-                        setStreet(data.logradouro.substring(3));
+                        setStreet(data.logradouro);
                         setState(data.uf);
                     }
                 });
         });
     }
 
-    async function apiGeoLocation() {
+    async function getGeoLocation({ street, number, city, state, cep }) {
+		try {
+			// Normaliza e prepara os dados
+			const nCep = cep.replace(/[^0-9]/g, "");
+			const streetParam = `${number} ${street}`;
 
-        // parâmetros estruturados para passar para API
-        const params = {
-            city: city.trim(),
-            state: state.trim(),
-            country: 'Brazil',
-            postalcode: cep.replace(/[^0-9]/gi, ""),
-            format: 'json' 
-        };
+			const url = new URL("https://nominatim.openstreetmap.org/search");
+			url.searchParams.set("format", "json");
+			url.searchParams.set("addressdetails", "1");
+			url.searchParams.set("limit", "3");
+			url.searchParams.set("street", streetParam);
+			url.searchParams.set("city", city);
+			url.searchParams.set("state", state);
+			url.searchParams.set("postalcode", nCep);
+			url.searchParams.set("country", "Brasil");
 
-        const queryString = new URLSearchParams(params).toString();
-        const url = `https://nominatim.openstreetmap.org/search?${queryString}`;
-        
-        // console.log("URL Estruturada:", url);
+			const response = await fetch(url.toString(), {
+			headers: {
+				"User-Agent": "meu-app-ribeiraopreto/1.0 (meuemail@exemplo.com)"
+			}
+			});
 
-        // 3. Fazemos a chamada à API como antes.
-        const response = await fetch(url, {
-            headers: {
-                'User-Agent': 'seu-app/1.0'
-            }
-        });
-        return response;
-    }
-    
-    async function getGeoLocation(){
-        try{
-            let responseObj = await apiGeoLocation();
-            let data = await responseObj.json();
-            if(!data.erro){
-                latitud =`${data[0].lat}`;
-                longitud = `${data[0].lon}`;
-                return true;
-            }
-            setError("Erro ao buscar Geolocalização. Endereço não encontrado, verifique os dados digitados e tente novamente.");
-            return false;
-        }catch(err){
-            setError("Erro Geolocation: " + err);
-            return false;
-        }
-    }
+			if (!response.ok) {
+			throw new Error(`Erro HTTP ${response.status} - ${response.statusText}`);
+			}
+
+			const results = await response.json();
+
+			if (!results.length) {
+			console.warn("Nenhum resultado encontrado para o endereço informado.");
+			return null;
+			}
+			const best = results[0];
+
+			return {
+			latitude: best.lat,
+			longitude: best.lon,
+			display_name: best.display_name,
+			type: best.type,
+			importance: best.importance
+			};
+
+		} catch (error) {
+			console.error("Erro ao consultar o Nominatim:", error.message);
+			return null;
+		}
+	}
 
     return(
         <View style={Style.default}>
