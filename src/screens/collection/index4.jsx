@@ -10,29 +10,13 @@ import { DonorContext } from "../../contexts/donor/context";
 import { useContext, useState } from "react";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Snackbar } from "react-native-paper";
-import { useGetMaterials } from "../../hooks/useGetMaterials";
-import { updateDonorPoints } from "../../firebase/providers/donor";
-import * as Types from "../../contexts/donor/types";
 
 export function Collection4({route}) {
   const {donorState, donorDispach} = useContext(DonorContext)
-  const {data} = useGetMaterials();
   const navigation = useNavigation();
   const database = getDatabase(firebaseApp);
   const [visible, setVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-
-  const user = {
-    id: donorState.id,
-    name: donorState.name,
-    photoUrl: donorState.photoUrl,
-  };
-
-  const coletor = {
-    id: "none",
-    name: "none",
-    photoUrl: require("../../../assets/images/profile.jpg"),
-  };
 
   const { tipo, endereco, caixas, sacolas, peso, dia, hora, observacao } = route.params;
   const materialsTypes = tipo.map(type => type.label).join(", ");
@@ -59,21 +43,13 @@ export function Collection4({route}) {
     setTimeout(() => setVisible(false), 2000); // Fecha após 2 segundos
   };
 
-  async function addNewDocument(tipo, caixas, dia, hora, observacao, peso, sacolas, user, coletor) {
+  async function addNewDocument(tipo, caixas, dia, hora, observacao, peso, sacolas) {
     try {
       const userData = {
-        id: user?.id || "none",
-        name: user?.name || "none",
-        photoUrl: user?.photoUrl || "none",
+        id: donorState.id || "none",
+        name: donorState.name || "none",
+        photoUrl: donorState.photoUrl || "none",
       };
-
-      const probablyGains = tipo.split(',').map(type => {
-        const material = data[type.trim()];
-        return material ? material.points.donor * (parseInt(peso) || 0) : 0;
-      }).reduce((acc, curr) => acc + curr, 0);
-
-      let newPoints = await updateDonorPoints(donorState.id, probablyGains);
-      donorDispach?.({ type: Types.SETUPDATE, payload: { points: newPoints } });
       
       const newDocRef = await push(ref(database, 'recyclable'), {
         types: tipo,
@@ -86,7 +62,11 @@ export function Collection4({route}) {
         bags: parseInt(sacolas),
         donor: userData,
         status: "pending",
-        collector: coletor,
+        collector: {
+          id: "none",
+          name: "none",
+          photoUrl: "none"
+        },
       });
   
       console.log('Documento adicionado com ID:', newDocRef.key);
@@ -120,12 +100,9 @@ export function Collection4({route}) {
               caixas,
               dia,
               hora,
-              endereco,
               observacao,
               peso,
-              sacolas,
-              user,
-              coletor
+              sacolas
             )
           }
         >
