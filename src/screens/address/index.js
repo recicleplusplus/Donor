@@ -1,4 +1,4 @@
-import {View, StyleSheet, TouchableOpacity, ScrollView} from "react-native";
+import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { Height, Size20, Width } from "../../constants/scales";
 import { Colors, Theme } from "../../constants/setting";
 import { ButtonDefault } from "../../components/buttons";
@@ -7,127 +7,186 @@ import { SizedBox } from "sizedbox";
 import { InputIcon, InputIconMask } from "../../components/inputs";
 import * as Mask from "../../utils/marksFormat";
 import { cepValidation } from "../../utils/validation";
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import { Loading } from "../../components/loading";
 import { Error } from "../../components/error";
 import { UPDATEADDRESS, UPDATE } from "../../contexts/donor/types";
 
+const REQUIRED_FIELD_ERROR = "Campo Obrigatório";
+const INVALID_CEP_ERROR = "CEP inválido";
+const GEOCODING_ERROR_TITLE = "Endereço Inválido";
+const GEOCODING_ERROR_MESSAGE = "Não foi possível validar o endereço informado. Verifique os dados e tente novamente.";
 
-export const RegisterAddress = ({data, dispach, closeFunc, idx = -1}) => {
+export const RegisterAddress = ({ data, dispach, closeFunc, idx = -1 }) => {
+	const [head, setHead] = useState("Cadastro de Endereço");
+	const [error, setError] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [errors, setErrors] = useState({});
+	
+	// Form fields
+	const [formData, setFormData] = useState({
+		title: "",
+		cep: "",
+		street: "",
+		num: "",
+		city: "",
+		state: "",
+		neighborhood: "",
+		complement: ""
+	});
 
-    //const {data, dispach}                   = useContext(DonorContext);
+	useEffect(() => {
+		if (idx >= 0 && data?.address?.[idx]) {
+			const address = data.address[idx];
+			setFormData({
+				title: address.title,
+				cep: address.cep,
+				street: address.street,
+				num: address.num,
+				city: address.city,
+				state: address.state,
+				neighborhood: address.neighborhood,
+				complement: address.complement
+			});
+			setHead("Edição de Endereço");
+		}
+	}, [idx, data]);
 
-    const [title, setTitle]                 = useState("");
-    const [cep, setCep]                     = useState("");
-    const [street, setStreet]               = useState("");
-    const [num, setNum]                     = useState("");
-    const [city, setCity]                   = useState("");
-    const [state, setState]                 = useState("");
-    const [neighborhood, setNeighborhood]   = useState("");
-    const [complement, setComplement]       = useState("");
+	const updateField = (field, value) => {
+		setFormData(prev => ({ ...prev, [field]: value }));
+		if (errors[field]) {
+			setErrors(prev => ({ ...prev, [field]: "" }));
+		}
+	};
 
-    const [head, setHead]                   = useState("Cadastro de Endereço")
-    const [error, setError]                 = useState(false);
-    const [loading, setloading]             = useState(false);
+	const validateForm = () => {
+		const newErrors = {};
 
-    const [titleErr, setTitleErr]           = useState("");
-    const [cepErr, setCepErr]               = useState("");
-    const [streetErr, setStreetErr]         = useState("");
-    const [numErr, setNumErr]               = useState("");
-    const [cityErr, setCityErr]             = useState("");
-    const [stateErr, setStateErr]           = useState("");
+		// Validate required fields
+		if (!formData.title.trim()) {
+			newErrors.title = REQUIRED_FIELD_ERROR;
+		}
+		if (!formData.street.trim()) {
+			newErrors.street = REQUIRED_FIELD_ERROR;
+		}
+		if (!formData.num.trim()) {
+			newErrors.num = REQUIRED_FIELD_ERROR;
+		}
+		if (!formData.state.trim()) {
+			newErrors.state = REQUIRED_FIELD_ERROR;
+		}
+		if (!formData.city.trim()) {
+			newErrors.city = REQUIRED_FIELD_ERROR;
+		}
+		if (cepValidation(formData.cep)) {
+			newErrors.cep = INVALID_CEP_ERROR;
+		}
 
-    useEffect(()=>{
-        if(idx >= 0){
-            setTitle(data.address[idx].title)
-            setCep(data.address[idx].cep)
-            setStreet(data.address[idx].street)
-            setNum(data.address[idx].num)
-            setNeighborhood(data.address[idx].neighborhood)
-            setCity(data.address[idx].city)
-            setState(data.address[idx].state)
-            setComplement(data.address[idx].complement)
-            setHead("Edição de Endereço")
-        }
-    },[]);
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0;
+	};
 
-    function validation(){
-        let res = true;
-        const phase = "Campo Obrigatório"
+	const handleConfirm = async () => {
+		setLoading(true);
 
-        if(title  == ''){setTitleErr(phase);res = false;}
-        if(street == ''){setStreetErr(phase); res = false;}
-        if(num    == ''){setNumErr(phase); res = false;}
-        if(state  == ''){setStateErr(phase); res = false;}
-        if(city   == ''){setCityErr(phase); res = false;}
-        if(cepValidation(cep)) {setCepErr("Cep inválido"); res = false;}
+		if (!validateForm()) {
+			setLoading(false);
+			return;
+		}
 
-        return res;
-    }
+		try {
+			const geoData = await getGeoLocation({
+				street: formData.street,
+				number: formData.num,
+				city: formData.city,
+				state: formData.state,
+				cep: formData.cep
+			});
 
-    async function confimPressed(){
-        setloading(true);
-        if(validation()){
-            let address = data.address;
-
-			const geoData = await getGeoLocation({ street, number: num, city, state, cep });
-			if (geoData) {
-				const newAddress = {
-					'title' : title.trim(),
-					'cep' : cep.trim(),
-					'num' : num.trim(),
-					'street' : street.trim(),
-					'state' : state.trim(), 
-					'city' : city.trim(),
-					'neighborhood': neighborhood.trim(),
-					'complement' : complement.trim(),
-					'latitude' : geoData.latitude.trim(),
-					'longitude' : geoData.longitude.trim()
-				}
-
-				if(idx >= 0){
-					address[idx] = newAddress
-				}else{
-					address.push(newAddress);
-				}
-
-				dispach({type: UPDATEADDRESS, payload: address})
-				dispach({type: UPDATE, data: {...data, 'address':address}, dispatch: dispach, cb:updateCB});
-				closeFunc();
-			} else {
-				setError("Não foi possível validar o endereço informado.");
-        		setloading(false);
+			if (!geoData) {
+				setError({
+					title: GEOCODING_ERROR_TITLE,
+					content: GEOCODING_ERROR_MESSAGE
+				});
+				setLoading(false);
+				return;
 			}
-        }
-        setloading(false);
-    }
-    function updateCB(status, err){
-        if(status){setError(err)};  
-        setloading(false); 
-    }
-    function apiCep(){
-        const nCep = cep.replace(/[^0-9]/gi, "");
-        return `https://viacep.com.br/ws/${nCep}/json/`;
-    }
-    function getCepInf(){
-        fetch(apiCep())
-            .then((responseObj) => {
-            responseObj.json()
-                .then((data) => {
-                    if(!data.erro){
-                        setNeighborhood(data.bairro);
-                        setCity(data.localidade);
-                        setStreet(data.logradouro);
-                        setState(data.uf);
-                    }
-                });
-        });
-    }
 
-    async function getGeoLocation({ street, number, city, state, cep }) {
+			const newAddress = {
+				title: formData.title.trim(),
+				cep: formData.cep.trim(),
+				num: formData.num.trim(),
+				street: formData.street.trim(),
+				state: formData.state.trim(),
+				city: formData.city.trim(),
+				neighborhood: formData.neighborhood.trim(),
+				complement: formData.complement.trim(),
+				latitude: geoData.latitude,
+				longitude: geoData.longitude
+			};
+
+			const updatedAddresses = [...data.address];
+			if (idx >= 0) {
+				updatedAddresses[idx] = newAddress;
+			} else {
+				updatedAddresses.push(newAddress);
+			}
+
+			dispach({ type: UPDATEADDRESS, payload: updatedAddresses });
+			dispach({
+				type: UPDATE,
+				data: { ...data, address: updatedAddresses },
+				dispatch: dispach,
+				cb: updateCB
+			});
+
+			closeFunc();
+		} catch (err) {
+			console.error("Error in handleConfirm:", err);
+			setError({
+				title: "Erro",
+				content: "Ocorreu um erro ao processar o endereço."
+			});
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const updateCB = (status, err) => {
+		if (status && err) {
+			setError(err);
+		}
+		setLoading(false);
+	};
+
+	const fetchCepInfo = async () => {
+		if (!formData.cep) return;
+
+		const cleanCep = formData.cep.replace(/[^0-9]/gi, "");
+		if (cleanCep.length !== 8) return;
+
+		try {
+			const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+			const data = await response.json();
+
+			if (!data.erro) {
+				setFormData(prev => ({
+					...prev,
+					neighborhood: data.bairro || prev.neighborhood,
+					city: data.localidade || prev.city,
+					street: data.logradouro || prev.street,
+					state: data.uf || prev.state
+				}));
+			}
+		} catch (error) {
+			console.error("Erro ao buscar CEP:", error);
+		}
+	};
+
+	const getGeoLocation = async ({ street, number, city, state, cep }) => {
 		try {
 			// Normaliza e prepara os dados
-			const nCep = cep.replace(/[^0-9]/g, "");
+			const cleanCep = cep.replace(/[^0-9]/g, "");
 			const streetParam = `${number} ${street}`;
 
 			const url = new URL("https://nominatim.openstreetmap.org/search");
@@ -137,196 +196,194 @@ export const RegisterAddress = ({data, dispach, closeFunc, idx = -1}) => {
 			url.searchParams.set("street", streetParam);
 			url.searchParams.set("city", city);
 			url.searchParams.set("state", state);
-			url.searchParams.set("postalcode", nCep);
+			url.searchParams.set("postalcode", cleanCep);
 			url.searchParams.set("country", "Brasil");
 
 			const response = await fetch(url.toString(), {
-			headers: {
-				"User-Agent": "meu-app-ribeiraopreto/1.0 (meuemail@exemplo.com)"
-			}
+				headers: {
+					"User-Agent": "donor-app/1.0"
+				}
 			});
 
 			if (!response.ok) {
-			throw new Error(`Erro HTTP ${response.status} - ${response.statusText}`);
+				throw new Error(`Erro HTTP ${response.status} - ${response.statusText}`);
 			}
 
 			const results = await response.json();
 
 			if (!results.length) {
-			console.warn("Nenhum resultado encontrado para o endereço informado.");
-			return null;
+				console.warn("Nenhum resultado encontrado para o endereço.");
+				return null;
 			}
+
 			const best = results[0];
-
 			return {
-			latitude: best.lat,
-			longitude: best.lon,
-			display_name: best.display_name,
-			type: best.type,
-			importance: best.importance
+				latitude: best.lat,
+				longitude: best.lon,
+				display_name: best.display_name,
+				type: best.type,
+				importance: best.importance
 			};
-
 		} catch (error) {
-			console.error("Erro ao consultar o Nominatim:", error.message);
+			console.error("Erro ao consultar Nominatim:", error.message);
 			return null;
 		}
+	};
+
+	return (
+		<View style={styles.overlay}>
+			{loading && <Loading />}
+			{error && <Error error={error} closeFunc={() => setError(false)} />}
+
+			<TouchableOpacity
+				style={[styles.overlay, styles.backdrop]}
+				onPress={closeFunc}
+				activeOpacity={1}
+			/>
+
+			<View style={styles.container}>
+				<ScrollView showsVerticalScrollIndicator={false}>
+					<TitleColorSmall align="center" content={head} />
+					<SizedBox vertical={5} />
+
+					<InputIcon
+						onChange={(value) => updateField("title", value)}
+						value={formData.title}
+						placeholder="Digite o título"
+						label="Titulo *"
+						flexS={0.78}
+						errorMsg={errors.title}
+					/>
+
+					<View style={styles.row}>
+						<InputIconMask
+							onChange={(value) => updateField("cep", value)}
+							value={formData.cep}
+							placeholder="Digite o CEP"
+							keyboardType="number-pad"
+							label="CEP *"
+							mask={Mask.cepMask}
+							flexS={0.4}
+							errorMsg={errors.cep}
+							onBlur={fetchCepInfo}
+						/>
+						<InputIcon
+							onChange={(value) => updateField("num", value)}
+							value={formData.num}
+							placeholder="Digite o Nº"
+							keyboardType="number-pad"
+							label="Nº Endereço *"
+							flexS={0.35}
+							errorMsg={errors.num}
+						/>
+					</View>
+
+					<InputIcon
+						onChange={(value) => updateField("street", value)}
+						value={formData.street}
+						placeholder="Digite o nome da rua"
+						label="Rua *"
+						flexS={0.78}
+						errorMsg={errors.street}
+					/>
+
+					<View style={styles.row}>
+						<InputIcon
+							onChange={(value) => updateField("state", value)}
+							value={formData.state}
+							placeholder="Nome do estado"
+							label="Estado *"
+							flexS={0.375}
+							errorMsg={errors.state}
+						/>
+						<InputIcon
+							onChange={(value) => updateField("city", value)}
+							value={formData.city}
+							placeholder="Nome da cidade"
+							label="Cidade *"
+							flexS={0.375}
+							errorMsg={errors.city}
+						/>
+					</View>
+
+					<View style={styles.row}>
+						<InputIcon
+							onChange={(value) => updateField("neighborhood", value)}
+							value={formData.neighborhood}
+							placeholder="Nome do bairro"
+							label="Bairro"
+							flexS={0.375}
+						/>
+						<InputIcon
+							onChange={(value) => updateField("complement", value)}
+							value={formData.complement}
+							placeholder="Ex: Ap. 621, Fundo."
+							label="Complemento"
+							flexS={0.375}
+						/>
+					</View>
+
+					<SizedBox vertical={5} />
+
+					<View style={styles.row}>
+						<ButtonDefault
+							title="Cancelar"
+							padding={5}
+							width={0.35}
+							color={Colors[Theme][8]}
+							textColor={Colors[Theme][1]}
+							radius={16}
+							textSize={Size20 * 0.9}
+							fun={closeFunc}
+						/>
+						<ButtonDefault
+							title="Confirmar"
+							padding={5}
+							width={0.35}
+							color={Colors[Theme][2]}
+							textColor={Colors[Theme][1]}
+							radius={16}
+							textSize={Size20 * 0.9}
+							fun={handleConfirm}
+						/>
+					</View>
+				</ScrollView>
+			</View>
+		</View>
+	);
+};
+
+const styles = StyleSheet.create({
+	overlay: {
+		position: "absolute",
+		top: 0,
+		left: 0,
+		right: 0,
+		bottom: 0,
+		elevation: 1,
+		zIndex: 1,
+		justifyContent: "center"
+	},
+	backdrop: {
+		backgroundColor: Colors[Theme][4],
+		opacity: 0.3,
+		alignItems: "center"
+	},
+	container: {
+		position: "absolute",
+		elevation: 1,
+		zIndex: 1,
+		width: Width * 0.9,
+		maxHeight: Height * 0.85,
+		backgroundColor: Colors[Theme][1],
+		alignSelf: "center",
+		borderRadius: 10,
+		padding: 20,
+		alignItems: "center"
+	},
+	row: {
+		width: Width * 0.9 - 45,
+		flexDirection: "row",
+		justifyContent: "space-between"
 	}
-
-    return(
-        <View style={Style.default}>
-            {loading && <Loading/>}
-            {error && <Error error={error} closeFunc={()=>setError(false)}/>}
-
-            <TouchableOpacity style={{...Style.default, ...Style.container}} onPress={closeFunc}></TouchableOpacity>
-            <View style={Style.subcontainer}>
-                <ScrollView>
-
-                    <TitleColorSmall align={"center"} content={head}/>
-                    <SizedBox vertical={5}/>
-
-                    <InputIcon 
-                        onChange = {(value) => {setTitle(value), setTitleErr("")}}
-                        value = {title}
-                        placeholder = {"Digite o título"}
-                        label = "Titulo *"
-                        flexS={0.78}
-                        errorMsg={titleErr}
-                    />
-
-                    <View style={Style.row}>
-                        <InputIconMask 
-                            onChange = {(value) => {setCep(value); setCepErr('')}}
-                            value = {cep}
-                            placeholder = {"Digite o CEP"}
-                            keyboardType={"number-pad"}
-                            label = "CEP *"
-                            mask={Mask.cepMask}
-                            flexS={0.4}
-                            errorMsg={cepErr}
-                            onBlur={getCepInf}
-                        />
-                        <InputIcon 
-                            onChange = {(value) => {setNum(value);setNumErr('')}}
-                            value = {num}
-                            placeholder = {"Digite o Nº"}
-                            keyboardType={"number-pad"}
-                            label = "Nº Endereço *"
-                            flexS={0.35}
-                            errorMsg={numErr}
-                        />
-                    </View>
-
-                    <InputIcon 
-                        onChange = {(value) => {setStreet(value); setStreetErr('')}}
-                        value = {street}
-                        placeholder = {"Digite o nome da rua"}
-                        label = "Rua *"
-                        flexS={0.78}
-                        errorMsg={streetErr}
-                    />
-
-                    <View style={Style.row}>
-                        <InputIcon 
-                            onChange = {(value) => {setState(value); setStateErr('')}}
-                            value = {state}
-                            placeholder = {"Nome do estado"}
-                            label = "Estado *"
-                            flexS={0.375}
-                            errorMsg={stateErr}
-                        />
-                        <InputIcon 
-                            onChange = {(value) => {setCity(value); setCityErr('')}}
-                            value = {city}
-                            placeholder = {"Nome da cidade"}
-                            label = "Cidade *"
-                            flexS={0.375}
-                            errorMsg={cityErr}
-                        />
-                    </View>
-
-                    <View style={Style.row}>
-                       <InputIcon 
-                            onChange = {setNeighborhood}
-                            value = {neighborhood}
-                            placeholder = {"Nome do bairro"}
-                            label = "Bairro"
-                            flexS={0.375}
-                        />
-                         <InputIcon 
-                            onChange = {setComplement}
-                            value = {complement}
-                            placeholder = {"Ex: Ap. 621, Fundo."}
-                            label = "Complemento"
-                            flexS={0.375}
-                        />
-                    </View>
-
-                    <SizedBox vertical={5}/>
-                    <View style={Style.row}>
-                        <ButtonDefault
-                            title={"Cancelar"}
-                            padding={5}
-                            width={0.35}
-                            color={Colors[Theme][8]}
-                            textColor={Colors[Theme][1]}
-                            radius={16}
-                            textSize={Size20*0.9}
-                            fun={closeFunc}
-                        />
-                        <ButtonDefault
-                            title={"Confirmar"}
-                            padding={5}
-                            width={0.35}
-                            color={Colors[Theme][2]}
-                            textColor={Colors[Theme][1]}
-                            radius={16}
-                            textSize={Size20*0.9}
-                            fun={confimPressed}
-                        />
-                    </View>
-                </ScrollView>
-                
-            </View>
-        </View>
-    );
-}
-
-const Style = StyleSheet.create({
-    default: {
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        position: "absolute",
-        elevation: 1,
-        zIndex: 1,
-        justifyContent: "center"
-    },
-
-    row:{
-        width: Width*0.9-45,
-        display: "flex",
-        flexDirection:"row",
-        justifyContent:"space-between",        
-    },
-
-    container:{  
-        backgroundColor: Colors[Theme][4],
-        opacity: 0.3,
-        alignItems:"center",
-    },
-    
-    subcontainer:{
-        position: "absolute",
-        elevation: 1,
-        zIndex: 1,
-        width: Width*0.9,
-        maxHeight: Height*0.85,
-        //height: Height * 0.4,
-        backgroundColor: Colors[Theme][1],
-        alignSelf: "center",
-        borderRadius: 10,
-        padding: 20,
-        alignItems: "center",
-    },
-})
+});
