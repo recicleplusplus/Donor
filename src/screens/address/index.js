@@ -9,18 +9,15 @@ import * as Mask from "../../utils/marksFormat";
 import { cepValidation } from "../../utils/validation";
 import { useEffect, useState } from "react";
 import { Loading } from "../../components/loading";
-import { Error } from "../../components/error";
 import { UPDATEADDRESS, UPDATE } from "../../contexts/donor/types";
-import { Snackbar } from "react-native-paper";
 
 const REQUIRED_FIELD_ERROR = "Campo Obrigatório";
 const INVALID_CEP_ERROR = "CEP inválido";
-const GEOCODING_ERROR_TITLE = "Endereço Inválido";
+const GEOCODING_ERROR = "Não foi possível validar o endereço informado. Tente novamente mais tarde.";
 const GEOCODING_ERROR_MESSAGE = "Não foi possível validar o endereço informado. Verifique os dados e tente novamente.";
 
 export const RegisterAddress = ({ data, dispach, closeFunc, idx = -1 }) => {
 	const [head, setHead] = useState("Cadastro de Endereço");
-	const [error, setError] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [errors, setErrors] = useState({});
 	
@@ -92,7 +89,7 @@ export const RegisterAddress = ({ data, dispach, closeFunc, idx = -1 }) => {
 
 		if (!validateForm()) {
 			setLoading(false);
-			onSaveCallback(true, "Falha na validação. Verifique os dados do endereço.");
+			onSaveCallback(true, GEOCODING_ERROR_MESSAGE);
 			return;
 		}
 
@@ -106,12 +103,8 @@ export const RegisterAddress = ({ data, dispach, closeFunc, idx = -1 }) => {
 			});
 
 			if (!geoData) {
-				setError({
-					title: GEOCODING_ERROR_TITLE,
-					content: GEOCODING_ERROR_MESSAGE
-				});
 				setLoading(false);
-				onSaveCallback(true, GEOCODING_ERROR_MESSAGE);
+				onSaveCallback(true, GEOCODING_ERROR);
 				return;
 			}
 
@@ -144,12 +137,8 @@ export const RegisterAddress = ({ data, dispach, closeFunc, idx = -1 }) => {
 			});
 		} catch (err) {
 			console.error("Error in handleConfirm:", err);
-			setError({
-				title: "Erro",
-				content: "Ocorreu um erro ao processar o endereço."
-			});
 			setLoading(false);
-			onSaveCallback(true, "Ocorreu um erro ao processar o endereço.");
+			onSaveCallback(true, GEOCODING_ERROR);
 		}
 	};
 
@@ -233,9 +222,7 @@ export const RegisterAddress = ({ data, dispach, closeFunc, idx = -1 }) => {
 	return (
 		<View style={styles.overlay}>
 			{loading && <Loading />}
-			<Snackbar visible={true} onDismiss={() => setError(false)} duration={5000} style={{ backgroundColor: Colors[Theme][9] }}>
-				{error?.content}
-			</Snackbar>
+
 			<TouchableOpacity
 				style={[styles.overlay, styles.backdrop]}
 				onPress={closeFunc}
