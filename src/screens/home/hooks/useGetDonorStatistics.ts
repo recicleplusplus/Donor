@@ -25,8 +25,9 @@ export function useGetDonorStatistics(
 
     const typesWeight: Record<string, number> = {};
     data.forEach(item => {
+      if (!item.types) return;
       const typesArray = item.types.split(',').map(type => type.trim());
-      const weightMatch = item.weight.match(/\d+/);
+      const weightMatch = item.weight?.match(/\d+/);
       const weight = weightMatch ? parseInt(weightMatch[0], 10) : 0;
 
       typesArray.forEach(type => {

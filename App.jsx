@@ -1,5 +1,6 @@
 import {useEffect} from "react";
 import messaging from "@react-native-firebase/messaging";
+import { Provider as PaperProvider } from 'react-native-paper';
 
 
 import {
@@ -79,8 +80,10 @@ export default function App() {
 
 
   return (
-    <DonorProvider>
-      <Routes/>
-    </DonorProvider>
+    <PaperProvider>
+      <DonorProvider>
+        <Routes/>
+      </DonorProvider>
+    </PaperProvider>
   );
 }

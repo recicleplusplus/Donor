@@ -41,11 +41,11 @@ export function Collection3({route}) {
     { label: 'domingo', value: 'domingo' },
   ];
 
-  const { tipo, endereco, caixas, sacolas, peso } = route.params;
+  const { materialsData, endereco } = route.params;
 
   const nextPage = () => {
     console.log('Navegando para a Página 4');
-    navigation.navigate('Collection4', { tipo, endereco, caixas, sacolas, peso, dia: daysString, hora: hoursString, observacao});
+    navigation.navigate('Collection4', { materialsData, endereco, dia: daysString, hora: hoursString, observacao});
   };
 
   const handleCheckboxChangeHours = (value) => {
